@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Timer, Play, Pause, RotateCcw, Volume2, VolumeX, Plus, ChevronRight } from "lucide-react";
 import { soundEffects } from "@/lib/audio-beeps";
 import { cn } from "@/lib/utils";
+import { SlideToConfirmWorkout } from "@/components/ui/SlideToConfirmWorkout";
 
 type TimerMode = "emom" | "amrap" | "tabata" | "stopwatch";
 
@@ -337,6 +338,19 @@ export function WorkoutTimerDialog({
               )}
             </div>
           )}
+
+          {/* Bencho UI Slide-to-Confirm Workout Completion */}
+          <div className="py-1">
+            <SlideToConfirmWorkout
+              onConfirm={() => {
+                setIsRunning(false);
+                if (!muted) soundEffects.playFinishBeep?.();
+              }}
+              text="Deslize para Concluir Treino"
+              confirmedText="Treino Finalizado!"
+              className="w-full"
+            />
+          </div>
 
           {/* Primary Controls */}
           <div className="flex gap-2">
