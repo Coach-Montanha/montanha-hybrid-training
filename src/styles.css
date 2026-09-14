@@ -478,3 +478,53 @@
 #lovable-badge {
   display: none !important;
 }
+
+/* ==========================================================================
+   MICROKIT UI WORKOUT MICRO-INTERACTIONS
+   ========================================================================== */
+
+/* 1. MicroKit Magnetic Fill Button (Workout Completion) */
+.microkit-magnetic-btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+.microkit-magnetic-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140%;
+  height: 140%;
+  background: radial-gradient(circle, rgba(105, 88, 226, 0.4) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.35s ease;
+  border-radius: 50%;
+}
+.microkit-magnetic-btn:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+.microkit-magnetic-btn:active {
+  transform: scale(0.96);
+}
+
+/* 2. MicroKit Expanding Icon Tab */
+.microkit-expanding-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 9999px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.microkit-expanding-tab .tab-label {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.25s ease, opacity 0.2s ease;
+}
+.microkit-expanding-tab:hover .tab-label, .microkit-expanding-tab[aria-pressed="true"] .tab-label {
+  max-width: 100px;
+  opacity: 1;
+}
