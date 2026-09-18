@@ -197,10 +197,18 @@ export function WorkoutTimerDialog({
             className="w-full"
           >
             <TabsList className="grid grid-cols-4 w-full h-9">
-              <TabsTrigger value="emom" className="text-xs">EMOM</TabsTrigger>
-              <TabsTrigger value="amrap" className="text-xs">AMRAP</TabsTrigger>
-              <TabsTrigger value="tabata" className="text-xs">Tabata</TabsTrigger>
-              <TabsTrigger value="stopwatch" className="text-xs">Livre</TabsTrigger>
+              <TabsTrigger value="emom" className="text-xs">
+                EMOM
+              </TabsTrigger>
+              <TabsTrigger value="amrap" className="text-xs">
+                AMRAP
+              </TabsTrigger>
+              <TabsTrigger value="tabata" className="text-xs">
+                Tabata
+              </TabsTrigger>
+              <TabsTrigger value="stopwatch" className="text-xs">
+                Livre
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -209,8 +217,10 @@ export function WorkoutTimerDialog({
             className={cn(
               "flex flex-col items-center justify-center rounded-2xl border p-6 text-center transition-all",
               mode === "tabata" && tabataPhase === "work" && "bg-rose-500/10 border-rose-500/40",
-              mode === "tabata" && tabataPhase === "rest" && "bg-emerald-500/10 border-emerald-500/40",
-              mode !== "tabata" && "bg-gradient-to-b from-card to-muted/40 border-border"
+              mode === "tabata" &&
+                tabataPhase === "rest" &&
+                "bg-emerald-500/10 border-emerald-500/40",
+              mode !== "tabata" && "bg-gradient-to-b from-card to-muted/40 border-border",
             )}
           >
             {/* Subtitle / Status indicator */}
@@ -230,7 +240,8 @@ export function WorkoutTimerDialog({
                   variant={tabataPhase === "work" ? "destructive" : "default"}
                   className="text-xs uppercase font-bold"
                 >
-                  {tabataPhase === "work" ? "Trabalho" : "Descanso"} · Round {tabataCurrentRound}/{tabataRounds}
+                  {tabataPhase === "work" ? "Trabalho" : "Descanso"} · Round {tabataCurrentRound}/
+                  {tabataRounds}
                 </Badge>
               )}
               {mode === "stopwatch" && (
@@ -371,7 +382,7 @@ export function WorkoutTimerDialog({
               type="button"
               className={cn(
                 "flex-1 gap-2 cursor-pointer font-bold",
-                isRunning ? "bg-amber-600 hover:bg-amber-700" : "bg-primary"
+                isRunning ? "bg-amber-600 hover:bg-amber-700" : "bg-primary",
               )}
               onClick={() => {
                 if (!isRunning && !muted) {
