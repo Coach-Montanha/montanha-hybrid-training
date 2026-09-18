@@ -6,6 +6,7 @@ interface SlideToConfirmWorkoutProps {
   text?: string;
   confirmedText?: string;
   className?: string;
+  resetSignal?: number;
 }
 
 export const SlideToConfirmWorkout: React.FC<SlideToConfirmWorkoutProps> = ({
@@ -13,11 +14,30 @@ export const SlideToConfirmWorkout: React.FC<SlideToConfirmWorkoutProps> = ({
   text = 'Deslize para Concluir Treino',
   confirmedText = 'Treino Finalizado!',
   className = '',
+  resetSignal = 0,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragProgress, setDragProgress] = useState(0); // 0 to 1
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(280);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsDragging(false);
+    setDragProgress(0);
+    setIsConfirmed(false);
+  }, [resetSignal]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateWidth = () => setContainerWidth(container.getBoundingClientRect().width);
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
 
   const handleStart = () => {
     if (isConfirmed) return;
@@ -81,7 +101,7 @@ export const SlideToConfirmWorkout: React.FC<SlideToConfirmWorkoutProps> = ({
       {/* Background Track Fill */}
       <div
         className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-amber-600 via-orange-500 to-red-600 rounded-xl transition-all duration-75"
-        style={{ width: `${Math.max(52, dragProgress * 100)}%`, opacity: isConfirmed ? 1 : 0.85 }}
+        style={{ width: `${52 + dragProgress * Math.max(0, containerWidth - 52)}px`, opacity: isConfirmed ? 1 : 0.85 }}
       />
 
       {/* Text Label */}
@@ -105,7 +125,7 @@ export const SlideToConfirmWorkout: React.FC<SlideToConfirmWorkoutProps> = ({
             : 'bg-amber-400 text-black hover:scale-105'
         }`}
         style={{
-          transform: `translateX(${dragProgress * ((containerRef.current?.getBoundingClientRect().width || 280) - 52)}px)`,
+          transform: `translateX(${dragProgress * Math.max(0, containerWidth - 52)}px)`,
         }}
       >
         {isConfirmed ? <Check className="w-6 h-6 stroke-[3]" /> : <Flame className="w-6 h-6 animate-pulse" />}

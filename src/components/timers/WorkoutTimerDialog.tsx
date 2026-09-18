@@ -34,6 +34,7 @@ export function WorkoutTimerDialog({
   const [mode, setMode] = React.useState<TimerMode>(defaultMode);
   const [isRunning, setIsRunning] = React.useState(false);
   const [muted, setMuted] = React.useState(false);
+  const [finishSliderReset, setFinishSliderReset] = React.useState(0);
 
   // EMOM State
   const [emomMinutes, setEmomMinutes] = React.useState(10);
@@ -59,6 +60,7 @@ export function WorkoutTimerDialog({
   // Reset function
   const handleReset = React.useCallback(() => {
     setIsRunning(false);
+    setFinishSliderReset((value) => value + 1);
     // Reset EMOM
     setEmomCurrentMinute(1);
     setEmomSecondsLeft(60);
@@ -342,6 +344,7 @@ export function WorkoutTimerDialog({
           {/* Bencho UI Slide-to-Confirm Workout Completion */}
           <div className="py-1">
             <SlideToConfirmWorkout
+              resetSignal={finishSliderReset}
               onConfirm={() => {
                 setIsRunning(false);
                 if (!muted) soundEffects.playFinishBeep?.();
