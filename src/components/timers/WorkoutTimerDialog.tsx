@@ -34,6 +34,7 @@ export function WorkoutTimerDialog({
   const [mode, setMode] = React.useState<TimerMode>(defaultMode);
   const [isRunning, setIsRunning] = React.useState(false);
   const [muted, setMuted] = React.useState(false);
+  const [finishSliderReset, setFinishSliderReset] = React.useState(0);
 
   // EMOM State
   const [emomMinutes, setEmomMinutes] = React.useState(10);
@@ -59,6 +60,7 @@ export function WorkoutTimerDialog({
   // Reset function
   const handleReset = React.useCallback(() => {
     setIsRunning(false);
+    setFinishSliderReset((value) => value + 1);
     // Reset EMOM
     setEmomCurrentMinute(1);
     setEmomSecondsLeft(60);
@@ -75,9 +77,9 @@ export function WorkoutTimerDialog({
 
   // Main ticker effect
   React.useEffect(() => {
-    let interval: any = null;
+    let interval: number | undefined;
     if (isRunning) {
-      interval = setInterval(() => {
+      interval = window.setInterval(() => {
         if (mode === "emom") {
           setEmomSecondsLeft((prev) => {
             if (prev <= 4 && prev > 1 && !muted) {
@@ -136,7 +138,9 @@ export function WorkoutTimerDialog({
         }
       }, 1000);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval !== undefined) window.clearInterval(interval);
+    };
   }, [
     isRunning,
     mode,
@@ -193,10 +197,18 @@ export function WorkoutTimerDialog({
             className="w-full"
           >
             <TabsList className="grid grid-cols-4 w-full h-9">
-              <TabsTrigger value="emom" className="text-xs">EMOM</TabsTrigger>
-              <TabsTrigger value="amrap" className="text-xs">AMRAP</TabsTrigger>
-              <TabsTrigger value="tabata" className="text-xs">Tabata</TabsTrigger>
-              <TabsTrigger value="stopwatch" className="text-xs">Livre</TabsTrigger>
+              <TabsTrigger value="emom" className="text-xs">
+                EMOM
+              </TabsTrigger>
+              <TabsTrigger value="amrap" className="text-xs">
+                AMRAP
+              </TabsTrigger>
+              <TabsTrigger value="tabata" className="text-xs">
+                Tabata
+              </TabsTrigger>
+              <TabsTrigger value="stopwatch" className="text-xs">
+                Livre
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -205,8 +217,10 @@ export function WorkoutTimerDialog({
             className={cn(
               "flex flex-col items-center justify-center rounded-2xl border p-6 text-center transition-all",
               mode === "tabata" && tabataPhase === "work" && "bg-rose-500/10 border-rose-500/40",
-              mode === "tabata" && tabataPhase === "rest" && "bg-emerald-500/10 border-emerald-500/40",
-              mode !== "tabata" && "bg-gradient-to-b from-card to-muted/40 border-border"
+              mode === "tabata" &&
+                tabataPhase === "rest" &&
+                "bg-emerald-500/10 border-emerald-500/40",
+              mode !== "tabata" && "bg-gradient-to-b from-card to-muted/40 border-border",
             )}
           >
             {/* Subtitle / Status indicator */}
@@ -226,7 +240,8 @@ export function WorkoutTimerDialog({
                   variant={tabataPhase === "work" ? "destructive" : "default"}
                   className="text-xs uppercase font-bold"
                 >
-                  {tabataPhase === "work" ? "Trabalho" : "Descanso"} · Round {tabataCurrentRound}/{tabataRounds}
+                  {tabataPhase === "work" ? "Trabalho" : "Descanso"} · Round {tabataCurrentRound}/
+                  {tabataRounds}
                 </Badge>
               )}
               {mode === "stopwatch" && (
@@ -342,9 +357,10 @@ export function WorkoutTimerDialog({
           {/* Bencho UI Slide-to-Confirm Workout Completion */}
           <div className="py-1">
             <SlideToConfirmWorkout
+              resetSignal={finishSliderReset}
               onConfirm={() => {
                 setIsRunning(false);
-                if (!muted) soundEffects.playFinishBeep?.();
+                if (!muted) soundEffects.playRestCompleteBeep();
               }}
               text="Deslize para Concluir Treino"
               confirmedText="Treino Finalizado!"
@@ -366,7 +382,7 @@ export function WorkoutTimerDialog({
               type="button"
               className={cn(
                 "flex-1 gap-2 cursor-pointer font-bold",
-                isRunning ? "bg-amber-600 hover:bg-amber-700" : "bg-primary"
+                isRunning ? "bg-amber-600 hover:bg-amber-700" : "bg-primary",
               )}
               onClick={() => {
                 if (!isRunning && !muted) {
