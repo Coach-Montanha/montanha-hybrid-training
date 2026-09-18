@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { LayoutDashboard, Dumbbell, Users, Mountain, LogOut, ClipboardList, Settings } from "lucide-react";
 import {
@@ -35,6 +36,22 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
+  // Microkit SpotlightIndicator Refs & Effect
+  const spotlightNavRef = useRef<HTMLUListElement>(null);
+  const spotlightBarRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const nav = spotlightNavRef.current;
+    const bar = spotlightBarRef.current;
+    if (!nav || !bar) return;
+    const activeItem = nav.querySelector<HTMLElement>("[data-sidebar-active='true']");
+    if (!activeItem) return;
+    const navRect = nav.getBoundingClientRect();
+    const itemRect = activeItem.getBoundingClientRect();
+    bar.style.top = `${itemRect.top - navRect.top + 2}px`;
+    bar.style.height = `${itemRect.height - 4}px`;
+  }, [path, collapsed]);
+
   const isActive = (url: string, exact: boolean) =>
     exact ? path === url : path.startsWith(url);
 
@@ -66,9 +83,10 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Programação</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu ref={spotlightNavRef} className="relative">
+              <span ref={spotlightBarRef} className="pointer-events-none absolute left-0.5 w-1 rounded-sm bg-primary shadow-[2px_0_5px_rgba(249,115,22,.8),4px_0_11px_rgba(249,115,22,.45)] transition-[top,height] duration-300 ease-[cubic-bezier(.4,0,.2,1)]" />
               {items.map((item) => (
-                <SidebarMenuItem key={item.url}>
+                <SidebarMenuItem key={item.url} data-sidebar-active={isActive(item.url, item.exact)}>
                   <SidebarMenuButton asChild isActive={isActive(item.url, item.exact)}>
                     <Link to={item.url} className="flex items-center gap-2">
                       <item.icon className="h-4 w-4" />
