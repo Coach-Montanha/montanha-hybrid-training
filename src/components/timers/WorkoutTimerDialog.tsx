@@ -77,9 +77,9 @@ export function WorkoutTimerDialog({
 
   // Main ticker effect
   React.useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
+    let interval: number | undefined;
     if (isRunning) {
-      interval = setInterval(() => {
+      interval = window.setInterval(() => {
         if (mode === "emom") {
           setEmomSecondsLeft((prev) => {
             if (prev <= 4 && prev > 1 && !muted) {
@@ -138,7 +138,9 @@ export function WorkoutTimerDialog({
         }
       }, 1000);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval !== undefined) window.clearInterval(interval);
+    };
   }, [
     isRunning,
     mode,
