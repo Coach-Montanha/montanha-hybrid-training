@@ -77,7 +77,7 @@ export function WorkoutTimerDialog({
 
   // Main ticker effect
   React.useEffect(() => {
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (isRunning) {
       interval = setInterval(() => {
         if (mode === "emom") {
@@ -347,7 +347,7 @@ export function WorkoutTimerDialog({
               resetSignal={finishSliderReset}
               onConfirm={() => {
                 setIsRunning(false);
-                if (!muted) soundEffects.playFinishBeep?.();
+                if (!muted) soundEffects.playRestCompleteBeep();
               }}
               text="Deslize para Concluir Treino"
               confirmedText="Treino Finalizado!"
