@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as MasterAdminRouteImport } from './routes/master-admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -32,6 +33,11 @@ import { Route as AuthenticatedAppSessoesIdRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppExerciciosDuplicadosRouteImport } from './routes/_authenticated/app.exercicios.duplicados'
 import { Route as AuthenticatedAlunoSessaoIdRouteImport } from './routes/_authenticated/aluno.sessao.$id'
 
+const MasterAdminRoute = MasterAdminRouteImport.update({
+  id: '/master-admin',
+  path: '/master-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -153,6 +159,7 @@ const AuthenticatedAlunoSessaoIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/master-admin': typeof MasterAdminRoute
   '/aluno': typeof AuthenticatedAlunoRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/auth/primeiro-acesso': typeof AuthPrimeiroAcessoRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/master-admin': typeof MasterAdminRoute
   '/aluno': typeof AuthenticatedAlunoRouteWithChildren
   '/auth/primeiro-acesso': typeof AuthPrimeiroAcessoRoute
   '/app/alunos': typeof AuthenticatedAppAlunosRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/master-admin': typeof MasterAdminRoute
   '/_authenticated/aluno': typeof AuthenticatedAlunoRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/auth/primeiro-acesso': typeof AuthPrimeiroAcessoRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/master-admin'
     | '/aluno'
     | '/app'
     | '/auth/primeiro-acesso'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/master-admin'
     | '/aluno'
     | '/auth/primeiro-acesso'
     | '/app/alunos'
@@ -271,6 +282,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/master-admin'
     | '/_authenticated/aluno'
     | '/_authenticated/app'
     | '/auth/primeiro-acesso'
@@ -296,12 +308,20 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  MasterAdminRoute: typeof MasterAdminRoute
   ApiPublicExercisesRoute: typeof ApiPublicExercisesRoute
   ApiPublicProgramsRoute: typeof ApiPublicProgramsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/master-admin': {
+      id: '/master-admin'
+      path: '/master-admin'
+      fullPath: '/master-admin'
+      preLoaderRoute: typeof MasterAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -554,6 +574,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  MasterAdminRoute: MasterAdminRoute,
   ApiPublicExercisesRoute: ApiPublicExercisesRoute,
   ApiPublicProgramsRoute: ApiPublicProgramsRouteWithChildren,
 }
