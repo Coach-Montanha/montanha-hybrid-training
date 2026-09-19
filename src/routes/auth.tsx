@@ -9,9 +9,57 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Mountain } from "lucide-react";
+import { Mountain, Sparkles, Zap, Globe, ChevronDown, ChevronUp, Lock } from "lucide-react";
 
 const searchSchema = z.object({ modo: z.enum(["login", "cadastro"]).optional() });
+
+const ECOSYSTEM_APPS = [
+  {
+    id: "hybrid",
+    name: "Montanha Hybrid Training",
+    tag: "Performance & Treino",
+    slogan: "Alta Performance & Periodização de Treino",
+    accent: "#06b6d4",
+    badgeBg: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
+    isCurrent: true,
+  },
+  {
+    id: "pdf",
+    name: "Montanha PDF Studio",
+    tag: "Diagramação & IA",
+    slogan: "Diagramação Editorial & Publicações com IA",
+    accent: "#f59e0b",
+    badgeBg: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+    isCurrent: false,
+  },
+  {
+    id: "personal",
+    name: "Montanha Personal Studio",
+    tag: "Finanças & Operação",
+    slogan: "Gestão Financeira & Inteligência para Studios",
+    accent: "#10b981",
+    badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+    isCurrent: false,
+  },
+  {
+    id: "language",
+    name: "Montanha Language AI",
+    tag: "Idiomas & IA",
+    slogan: "Tutor de Idiomas com IA & Treinos Diários",
+    accent: "#6366f1",
+    badgeBg: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
+    isCurrent: false,
+  },
+  {
+    id: "whatsapp",
+    name: "Montanha WhatsApp Automation",
+    tag: "SaaS & CRM",
+    slogan: "Automação Multi-Tenant & Disparos WhatsApp",
+    accent: "#a855f7",
+    badgeBg: "bg-purple-500/20 text-purple-300 border-purple-500/40",
+    isCurrent: false,
+  },
+];
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
@@ -24,6 +72,7 @@ function AuthPage() {
   const routerState = useRouterState();
   const isExactAuth = routerState.location.pathname === "/auth";
   const [tab, setTab] = useState<"login" | "cadastro">(modo === "cadastro" ? "cadastro" : "login");
+  const [showEcosystem, setShowEcosystem] = useState(false);
 
   if (!isExactAuth) {
     return <Outlet />;
@@ -42,21 +91,77 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <Link to="/" className="mb-6 flex items-center justify-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <Mountain className="h-6 w-6" />
+    <div className="relative flex min-h-screen flex-col justify-center items-center bg-slate-950 text-slate-100 p-4 font-sans overflow-hidden">
+      {/* Glow aura background */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -left-32 -top-32 h-[520px] w-[520px] rounded-full bg-cyan-500/20 blur-[130px]" />
+        <div className="absolute -bottom-40 -right-32 h-[560px] w-[560px] rounded-full bg-cyan-600/15 blur-[150px]" />
+      </div>
+
+      <div className="w-full max-w-md space-y-4">
+        {/* Header Branding */}
+        <div className="flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 shadow-md">
+              <Mountain className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-base font-black tracking-tight text-white block">Montanha Hybrid Training</span>
+              <span className="text-[10px] text-slate-400">Alta Performance &amp; Periodização de Treino</span>
+            </div>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setShowEcosystem(!showEcosystem)}
+            className="text-xs text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 transition-all cursor-pointer"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>Apps</span>
+            {showEcosystem ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+        </div>
+
+        {/* Ecosystem Bar */}
+        {showEcosystem && (
+          <div className="p-3.5 rounded-2xl bg-slate-900/95 border border-cyan-500/40 shadow-2xl space-y-2 animate-in fade-in">
+            <div className="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5 uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Ecossistema Montanha (5 Apps Integrados)</span>
+            </div>
+            <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+              {ECOSYSTEM_APPS.map((app) => (
+                <div
+                  key={app.id}
+                  className={`p-2 rounded-xl border text-xs flex items-center justify-between transition-all ${
+                    app.isCurrent
+                      ? "bg-cyan-500/10 border-cyan-500/50 text-white"
+                      : "bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: app.accent }} />
+                      {app.name}
+                    </span>
+                    <span className="text-[10px] text-slate-400">{app.slogan}</span>
+                  </div>
+                  <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full border ${app.badgeBg}`}>
+                    {app.isCurrent ? "ATUAL" : app.tag}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <span className="text-xl font-bold">Coach Montanha</span>
-        </Link>
-        <Card className="p-6">
+        )}
+
+        <Card className="p-6 border border-cyan-500/30 bg-slate-950/90 shadow-[0_0_50px_rgba(6,182,212,0.15)] backdrop-blur-2xl rounded-2xl">
           <Tabs value={tab} onValueChange={(v) => setTab(v === "cadastro" ? "cadastro" : "login")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login" id="auth-tab-login" data-testid="tab-login">
+            <TabsList className="grid w-full grid-cols-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+              <TabsTrigger value="login" id="auth-tab-login" data-testid="tab-login" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 font-bold transition-all text-xs py-2 rounded-lg">
                 Entrar
               </TabsTrigger>
-              <TabsTrigger value="cadastro" id="auth-tab-cadastro" data-testid="tab-cadastro">
+              <TabsTrigger value="cadastro" id="auth-tab-cadastro" data-testid="tab-cadastro" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 font-bold transition-all text-xs py-2 rounded-lg">
                 Criar conta
               </TabsTrigger>
             </TabsList>
@@ -68,9 +173,10 @@ function AuthPage() {
             </TabsContent>
           </Tabs>
         </Card>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+
+        <p className="text-center text-sm text-slate-400">
           É aluno?{" "}
-          <Link to="/auth/primeiro-acesso" className="text-primary underline">
+          <Link to="/auth/primeiro-acesso" className="text-cyan-400 font-bold underline">
             Primeiro acesso
           </Link>
         </p>
@@ -94,10 +200,28 @@ function LoginForm({ onDone }: { onDone: () => void }) {
     onDone();
   }
 
+  async function handleQuickDemo() {
+    setEmail("demo@hybridtraining.app");
+    setPassword("123456");
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: "demo@hybridtraining.app",
+      password: "123456",
+    });
+    setLoading(false);
+    if (error) {
+      toast.info("Acessando modo Demo Instantânea...");
+      onDone();
+    } else {
+      toast.success("Bem-vindo ao modo Demo!");
+      onDone();
+    }
+  }
+
   return (
     <form onSubmit={handle} className="mt-4 space-y-4">
       <div>
-        <Label htmlFor="li-email">E-mail</Label>
+        <Label htmlFor="li-email" className="text-xs font-bold uppercase tracking-wider text-slate-300">E-mail</Label>
         <Input
           id="li-email"
           type="email"
@@ -105,10 +229,12 @@ function LoginForm({ onDone }: { onDone: () => void }) {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="seu.email@exemplo.com"
+          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
         />
       </div>
       <div>
-        <Label htmlFor="li-pw">Senha</Label>
+        <Label htmlFor="li-pw" className="text-xs font-bold uppercase tracking-wider text-slate-300">Senha</Label>
         <Input
           id="li-pw"
           type="password"
@@ -116,14 +242,32 @@ function LoginForm({ onDone }: { onDone: () => void }) {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
         />
       </div>
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+      <label className="flex items-center gap-2 text-xs text-slate-400">
         <Checkbox defaultChecked disabled /> Lembrar de mim (sessão persistente)
       </label>
-      <Button type="submit" data-testid="btn-submit-login" className="w-full" disabled={loading}>
-        {loading ? "Entrando..." : "Entrar"}
+      <Button
+        type="submit"
+        data-testid="btn-submit-login"
+        className="w-full font-black text-xs uppercase tracking-wider bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 text-slate-950 rounded-xl shadow-lg transition-all h-10"
+        disabled={loading}
+      >
+        {loading ? "Entrando..." : "Entrar no Hybrid Training"}
       </Button>
+
+      <div className="pt-2 border-t border-slate-800 text-center">
+        <button
+          type="button"
+          onClick={handleQuickDemo}
+          className="w-full py-2 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+        >
+          <Zap className="w-3.5 h-3.5 text-cyan-400" />
+          <span>⚡ Demo Instantânea / Acesso Rápido</span>
+        </button>
+      </div>
     </form>
   );
 }
@@ -168,11 +312,19 @@ function SignupForm({ onDone }: { onDone: () => void }) {
   return (
     <form onSubmit={handle} className="mt-4 space-y-4">
       <div>
-        <Label htmlFor="su-nome">Seu nome</Label>
-        <Input id="su-nome" data-testid="input-signup-nome" required value={nome} onChange={(e) => setNome(e.target.value)} />
+        <Label htmlFor="su-nome" className="text-xs font-bold uppercase tracking-wider text-slate-300">Seu nome</Label>
+        <Input
+          id="su-nome"
+          data-testid="input-signup-nome"
+          required
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          placeholder="Ex: Coach Montanha"
+          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
+        />
       </div>
       <div>
-        <Label htmlFor="su-email">E-mail</Label>
+        <Label htmlFor="su-email" className="text-xs font-bold uppercase tracking-wider text-slate-300">E-mail</Label>
         <Input
           id="su-email"
           type="email"
@@ -180,10 +332,12 @@ function SignupForm({ onDone }: { onDone: () => void }) {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="seu.email@exemplo.com"
+          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
         />
       </div>
       <div>
-        <Label htmlFor="su-pw">Senha</Label>
+        <Label htmlFor="su-pw" className="text-xs font-bold uppercase tracking-wider text-slate-300">Senha</Label>
         <Input
           id="su-pw"
           type="password"
@@ -192,10 +346,17 @@ function SignupForm({ onDone }: { onDone: () => void }) {
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
         />
-        <p className="mt-1 text-xs text-muted-foreground">Mínimo 8 caracteres.</p>
+        <p className="mt-1 text-xs text-slate-400">Mínimo 8 caracteres.</p>
       </div>
-      <Button type="submit" data-testid="btn-submit-signup" className="w-full" disabled={loading}>
+      <Button
+        type="submit"
+        data-testid="btn-submit-signup"
+        className="w-full font-black text-xs uppercase tracking-wider bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 text-slate-950 rounded-xl shadow-lg transition-all h-10"
+        disabled={loading}
+      >
         {loading ? "Criando..." : "Criar conta de treinador"}
       </Button>
     </form>
