@@ -1,7 +1,7 @@
 {
-  "name": "Coach Montanha — Sistema Híbrido de Treinamento",
-  "short_name": "Coach Montanha",
-  "description": "Prescrição de treinos em 5 modalidades, com construtor de sessão por blocos.",
+  "name": "Montanha Hybrid Training",
+  "short_name": "Montanha Hybrid",
+  "description": "Plataforma de Alta Performance, Endurance & Periodização de Treino",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",

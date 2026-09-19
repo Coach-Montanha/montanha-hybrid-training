@@ -71,9 +71,9 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">Coach Montanha</div>
+              <div className="truncate text-sm font-semibold">Montanha Hybrid Training</div>
               <div className="truncate text-xs text-muted-foreground">
-                {coach?.nome ?? "—"}
+                Plataforma de Alta Performance, Endurance & Periodização de Treino
               </div>
             </div>
           )}

@@ -81,23 +81,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Coach Montanha — Sistema Híbrido de Treinamento" },
+      { title: "Montanha Hybrid Training — Plataforma de Alta Performance, Endurance & Periodização de Treino" },
       {
         name: "description",
         content:
-          "Plataforma de prescrição de treinos para treinadores: híbrido, kettlebell sport, kettlebell fitness, levantamento de peso e musculação.",
+          "Plataforma de Alta Performance, Endurance & Periodização de Treino.",
       },
       { name: "author", content: "Coach Montanha" },
       { name: "theme-color", content: "#0F1115" },
       { name: "visual-theme", content: "padrao" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Coach Montanha" },
+      { name: "apple-mobile-web-app-title", content: "Montanha Hybrid" },
       { name: "mobile-web-app-capable", content: "yes" },
-      { property: "og:title", content: "Coach Montanha — Sistema Híbrido de Treinamento" },
+      { property: "og:title", content: "Montanha Hybrid Training — Plataforma de Alta Performance, Endurance & Periodização de Treino" },
       {
         property: "og:description",
-        content: "Prescrição de treinos em 5 modalidades, com construtor de sessão por blocos.",
+        content: "Plataforma de Alta Performance, Endurance & Periodização de Treino.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
