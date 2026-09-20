@@ -101,43 +101,56 @@ function AuthPage() {
 
       <div className="w-full max-w-md space-y-4">
         {/* Header Branding */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-center text-center pb-2">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 shadow-md">
               <Mountain className="h-5 w-5" />
             </div>
-            <div>
+            <div className="text-left">
               <span className="text-base font-black tracking-tight text-white block">Montanha Hybrid Training</span>
               <span className="text-[10px] text-slate-400">Alta Performance &amp; Periodização de Treino</span>
             </div>
           </Link>
-
-          <div className="flex items-center gap-2">
-            <a
-              href="/master-admin"
-              className="text-xs text-purple-300 hover:text-white font-bold flex items-center gap-1 px-3 py-1.5 rounded-full bg-purple-500/20 border border-purple-500/40 transition-all"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-              <span>Painel Master</span>
-            </a>
-            <button
-              type="button"
-              onClick={() => setShowEcosystem(!showEcosystem)}
-              className="text-xs text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 transition-all cursor-pointer"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>Apps</span>
-              {showEcosystem ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            </button>
-          </div>
         </div>
 
-        {/* Ecosystem Bar */}
+        <Card className="p-6 border border-cyan-500/30 bg-slate-950/90 shadow-[0_0_50px_rgba(6,182,212,0.15)] backdrop-blur-2xl rounded-2xl">
+          <Tabs value={tab} onValueChange={(v) => setTab(v === "cadastro" ? "cadastro" : "login")}>
+            <TabsList className="grid w-full grid-cols-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+              <TabsTrigger value="login" id="auth-tab-login" data-testid="tab-login" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 font-bold transition-all text-xs py-2 rounded-lg">
+                Entrar
+              </TabsTrigger>
+              <TabsTrigger value="cadastro" id="auth-tab-cadastro" data-testid="tab-cadastro" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 font-bold transition-all text-xs py-2 rounded-lg">
+                Criar conta
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="login" id="auth-content-login">
+              <LoginForm onDone={routeAfterLogin} />
+            </TabsContent>
+            <TabsContent value="cadastro" id="auth-content-cadastro">
+              <SignupForm onDone={() => navigate({ to: "/app" })} />
+            </TabsContent>
+          </Tabs>
+        </Card>
+
+        {/* Footer Ecosystem Button */}
+        <div className="text-center pt-1">
+          <button
+            type="button"
+            onClick={() => setShowEcosystem(!showEcosystem)}
+            className="text-xs text-cyan-400 hover:text-cyan-300 font-bold inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 transition-all cursor-pointer shadow-md"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>🌐 Ecossistema (5 Apps Integrados)</span>
+            {showEcosystem ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+
+        {/* Ecosystem Drawer */}
         {showEcosystem && (
           <div className="p-3.5 rounded-2xl bg-slate-900/95 border border-cyan-500/40 shadow-2xl space-y-2 animate-in fade-in">
             <div className="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5 uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Ecossistema Montanha (5 Apps Integrados)</span>
+              <span>Plataformas do Ecossistema Montanha</span>
             </div>
             <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
               {ECOSYSTEM_APPS.map((app) => (
@@ -164,32 +177,6 @@ function AuthPage() {
             </div>
           </div>
         )}
-
-        <Card className="p-6 border border-cyan-500/30 bg-slate-950/90 shadow-[0_0_50px_rgba(6,182,212,0.15)] backdrop-blur-2xl rounded-2xl">
-          <Tabs value={tab} onValueChange={(v) => setTab(v === "cadastro" ? "cadastro" : "login")}>
-            <TabsList className="grid w-full grid-cols-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
-              <TabsTrigger value="login" id="auth-tab-login" data-testid="tab-login" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 font-bold transition-all text-xs py-2 rounded-lg">
-                Entrar
-              </TabsTrigger>
-              <TabsTrigger value="cadastro" id="auth-tab-cadastro" data-testid="tab-cadastro" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 font-bold transition-all text-xs py-2 rounded-lg">
-                Criar conta
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="login" id="auth-content-login">
-              <LoginForm onDone={routeAfterLogin} />
-            </TabsContent>
-            <TabsContent value="cadastro" id="auth-content-cadastro">
-              <SignupForm onDone={() => navigate({ to: "/app" })} />
-            </TabsContent>
-          </Tabs>
-        </Card>
-
-        <p className="text-center text-sm text-slate-400">
-          É aluno?{" "}
-          <Link to="/auth/primeiro-acesso" className="text-cyan-400 font-bold underline">
-            Primeiro acesso
-          </Link>
-        </p>
       </div>
     </div>
   );
@@ -199,6 +186,8 @@ function LoginForm({ onDone }: { onDone: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showReset, setShowReset] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   async function handle(e: React.FormEvent) {
     e.preventDefault();
@@ -223,29 +212,68 @@ function LoginForm({ onDone }: { onDone: () => void }) {
     onDone();
   }
 
-  async function handleQuickDemo() {
-    const demoEmail = "demo@hybridtraining.app";
-    const lockout = await checkAndLockGuestDemo(demoEmail);
-    if (lockout.locked && !lockout.allowed) {
-      toast.error("Trava Anti-Abuso: O modo demonstração já foi utilizado no ecossistema.");
-      return;
-    }
-
-    setEmail(demoEmail);
-    setPassword("123456");
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) return toast.error("Informe seu e-mail.");
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: demoEmail,
-      password: "123456",
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
     });
     setLoading(false);
-    if (error) {
-      toast.info("Acessando modo Demo Instantânea...");
-      onDone();
-    } else {
-      toast.success("Bem-vindo ao modo Demo!");
-      onDone();
-    }
+    if (error) return toast.error(error.message);
+    setResetSent(true);
+    toast.success("Instruções de recuperação enviadas ao e-mail informado!");
+  }
+
+  if (showReset) {
+    return (
+      <div className="mt-4 space-y-4">
+        <h3 className="text-sm font-bold text-white">Recuperação de Senha</h3>
+        {resetSent ? (
+          <div className="space-y-3 text-center">
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Enviamos as instruções para <b>{email}</b>. Verifique sua caixa de entrada e spam.
+            </p>
+            <button
+              type="button"
+              onClick={() => { setShowReset(false); setResetSent(false); }}
+              className="text-xs text-cyan-400 hover:underline font-bold"
+            >
+              ← Voltar ao Login
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleReset} className="space-y-3">
+            <div>
+              <Label htmlFor="reset-email" className="text-xs font-bold uppercase tracking-wider text-slate-300">Seu E-mail</Label>
+              <Input
+                id="reset-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu.email@exemplo.com"
+                className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full font-black text-xs uppercase tracking-wider bg-cyan-500 hover:bg-cyan-600 text-slate-950 rounded-xl transition-all h-10"
+              disabled={loading}
+            >
+              {loading ? "Enviando..." : "Enviar instruções de reset"}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setShowReset(false)}
+              className="w-full text-center text-xs text-slate-400 hover:text-white transition"
+            >
+              ← Voltar para o login
+            </button>
+          </form>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -276,28 +304,26 @@ function LoginForm({ onDone }: { onDone: () => void }) {
           className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
         />
       </div>
-      <label className="flex items-center gap-2 text-xs text-slate-400">
-        <Checkbox defaultChecked disabled /> Lembrar de mim (sessão persistente)
-      </label>
+      <div className="flex items-center justify-between text-xs">
+        <label className="flex items-center gap-2 text-slate-400">
+          <Checkbox defaultChecked disabled /> Lembrar de mim
+        </label>
+        <button
+          type="button"
+          onClick={() => setShowReset(true)}
+          className="text-cyan-400 hover:underline font-medium cursor-pointer"
+        >
+          Esqueci a senha
+        </button>
+      </div>
       <Button
         type="submit"
         data-testid="btn-submit-login"
-        className="w-full font-black text-xs uppercase tracking-wider bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 text-slate-950 rounded-xl shadow-lg transition-all h-10"
+        className="w-full font-black text-xs uppercase tracking-wider bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 text-slate-950 rounded-xl shadow-lg transition-all h-10 cursor-pointer"
         disabled={loading}
       >
         {loading ? "Entrando..." : "Entrar no Hybrid Training"}
       </Button>
-
-      <div className="pt-2 border-t border-slate-800 text-center">
-        <button
-          type="button"
-          onClick={handleQuickDemo}
-          className="w-full py-2 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-        >
-          <Zap className="w-3.5 h-3.5 text-cyan-400" />
-          <span>⚡ Demo Instantânea / Acesso Rápido</span>
-        </button>
-      </div>
     </form>
   );
 }
