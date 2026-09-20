@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { themeInitScript } from "@/lib/theme";
 import { registerServiceWorker } from "@/lib/pwa";
+import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 
 function NotFoundComponent() {
   return (
@@ -292,6 +293,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ImpersonationBanner />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster richColors position="top-right" />

@@ -10,6 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MasterAdminRouteImport } from './routes/master-admin'
+import { Route as EcoRouteImport } from './routes/eco'
+import { Route as CreateRouteImport } from './routes/create'
+import { Route as BoostRouteImport } from './routes/boost'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,6 +39,21 @@ import { Route as AuthenticatedAlunoSessaoIdRouteImport } from './routes/_authen
 const MasterAdminRoute = MasterAdminRouteImport.update({
   id: '/master-admin',
   path: '/master-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcoRoute = EcoRouteImport.update({
+  id: '/eco',
+  path: '/eco',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateRoute = CreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BoostRoute = BoostRouteImport.update({
+  id: '/boost',
+  path: '/boost',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -159,6 +177,9 @@ const AuthenticatedAlunoSessaoIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/boost': typeof BoostRoute
+  '/create': typeof CreateRoute
+  '/eco': typeof EcoRoute
   '/master-admin': typeof MasterAdminRoute
   '/aluno': typeof AuthenticatedAlunoRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
@@ -183,6 +204,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/boost': typeof BoostRoute
+  '/create': typeof CreateRoute
+  '/eco': typeof EcoRoute
   '/master-admin': typeof MasterAdminRoute
   '/aluno': typeof AuthenticatedAlunoRouteWithChildren
   '/auth/primeiro-acesso': typeof AuthPrimeiroAcessoRoute
@@ -208,6 +232,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/boost': typeof BoostRoute
+  '/create': typeof CreateRoute
+  '/eco': typeof EcoRoute
   '/master-admin': typeof MasterAdminRoute
   '/_authenticated/aluno': typeof AuthenticatedAlunoRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
@@ -234,6 +261,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/boost'
+    | '/create'
+    | '/eco'
     | '/master-admin'
     | '/aluno'
     | '/app'
@@ -258,6 +288,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/boost'
+    | '/create'
+    | '/eco'
     | '/master-admin'
     | '/aluno'
     | '/auth/primeiro-acesso'
@@ -282,6 +315,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/boost'
+    | '/create'
+    | '/eco'
     | '/master-admin'
     | '/_authenticated/aluno'
     | '/_authenticated/app'
@@ -308,6 +344,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  BoostRoute: typeof BoostRoute
+  CreateRoute: typeof CreateRoute
+  EcoRoute: typeof EcoRoute
   MasterAdminRoute: typeof MasterAdminRoute
   ApiPublicExercisesRoute: typeof ApiPublicExercisesRoute
   ApiPublicProgramsRoute: typeof ApiPublicProgramsRouteWithChildren
@@ -320,6 +359,27 @@ declare module '@tanstack/react-router' {
       path: '/master-admin'
       fullPath: '/master-admin'
       preLoaderRoute: typeof MasterAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eco': {
+      id: '/eco'
+      path: '/eco'
+      fullPath: '/eco'
+      preLoaderRoute: typeof EcoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/boost': {
+      id: '/boost'
+      path: '/boost'
+      fullPath: '/boost'
+      preLoaderRoute: typeof BoostRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -574,6 +634,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  BoostRoute: BoostRoute,
+  CreateRoute: CreateRoute,
+  EcoRoute: EcoRoute,
   MasterAdminRoute: MasterAdminRoute,
   ApiPublicExercisesRoute: ApiPublicExercisesRoute,
   ApiPublicProgramsRoute: ApiPublicProgramsRouteWithChildren,
