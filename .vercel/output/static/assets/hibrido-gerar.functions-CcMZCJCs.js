@@ -1,0 +1,1 @@
+import{i as e,s as t,t as n}from"./auth-middleware-L-kHNFTQ.js";var r=e({method:`POST`}).middleware([n]).handler(t(`fecb06e7f6b6928adae50ded803997e69dd620a043606b7a08894ea0994985c4`));export{r as gerarSessoesHibrido};

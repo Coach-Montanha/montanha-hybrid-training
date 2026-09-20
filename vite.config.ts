@@ -7,6 +7,9 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  nitro: {
+    preset: "vercel",
+  },
   vite: {
     build: {
       // Vite 8/Rolldown can drop declarations from large, highly re-exported
