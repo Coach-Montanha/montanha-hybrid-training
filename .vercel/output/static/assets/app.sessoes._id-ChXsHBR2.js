@@ -1,1 +1,0 @@
-import{t as e}from"./jsx-runtime-ByNbsjhr.js";import{n as t}from"./index-wubZsL_M.js";import{SessionBuilder as n}from"./SessionBuilder-RQ31ZufO.js";var r=e();function i(){let{id:e}=t.useParams();return(0,r.jsx)(n,{sessionId:e})}export{i as component};
