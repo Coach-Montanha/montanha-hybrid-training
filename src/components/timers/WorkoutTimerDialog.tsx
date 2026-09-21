@@ -19,8 +19,6 @@ import {
   Volume2, 
   VolumeX, 
   Plus, 
-  X,
-  AlertTriangle,
 } from "lucide-react";
 import { soundEffects } from "@/lib/audio-beeps";
 import { cn } from "@/lib/utils";
@@ -45,10 +43,6 @@ export function WorkoutTimerDialog({
   const [isRunning, setIsRunning] = React.useState(false);
   const [muted, setMuted] = React.useState(false);
   const [finishSliderReset, setFinishSliderReset] = React.useState(0);
-
-  // 2x para fechar confirmation state
-  const [confirmClose, setConfirmClose] = React.useState(false);
-  const closeTimeoutRef = React.useRef<number | undefined>(undefined);
 
   // EMOM / E2MOM / E{N}MOM State
   const [emomIntervalMinutes, setEmomIntervalMinutes] = React.useState(1); // 1 = EMOM, 2 = E2MOM, etc.
@@ -75,28 +69,6 @@ export function WorkoutTimerDialog({
   // Computed total blocks for EMOM
   const emomTotalBlocks = Math.max(1, Math.ceil(emomMinutes / emomIntervalMinutes));
   const emomModeLabel = emomIntervalMinutes === 1 ? "EMOM" : `E${emomIntervalMinutes}MOM`;
-
-  // Close handler requiring double confirmation
-  const handleRequestClose = React.useCallback(() => {
-    if (confirmClose) {
-      if (closeTimeoutRef.current !== undefined) window.clearTimeout(closeTimeoutRef.current);
-      setConfirmClose(false);
-      onOpenChange?.(false);
-    } else {
-      setConfirmClose(true);
-      if (closeTimeoutRef.current !== undefined) window.clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = window.setTimeout(() => {
-        setConfirmClose(false);
-      }, 3000);
-    }
-  }, [confirmClose, onOpenChange]);
-
-  // Clean timeout on unmount
-  React.useEffect(() => {
-    return () => {
-      if (closeTimeoutRef.current !== undefined) window.clearTimeout(closeTimeoutRef.current);
-    };
-  }, []);
 
   // Reset function
   const handleReset = React.useCallback(() => {
@@ -210,48 +182,9 @@ export function WorkoutTimerDialog({
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={(next) => {
-        if (!next) {
-          handleRequestClose();
-        } else {
-          onOpenChange?.(true);
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent 
-        onPointerDownOutside={(e) => {
-          e.preventDefault();
-          handleRequestClose();
-        }}
-        onEscapeKeyDown={(e) => {
-          e.preventDefault();
-          handleRequestClose();
-        }}
-        className="max-w-md"
-      >
-        {/* Double click warning banner */}
-        {confirmClose && (
-          <div className="flex items-center justify-between rounded-lg bg-destructive/15 border border-destructive/30 px-3 py-2 text-xs font-semibold text-destructive animate-in fade-in slide-in-from-top-1">
-            <div className="flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-              <span>Toque 2x para fechar o cronômetro</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setConfirmClose(false);
-                onOpenChange?.(false);
-              }}
-              className="rounded bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground hover:opacity-90 transition-opacity"
-            >
-              Sair agora
-            </button>
-          </div>
-        )}
-
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-primary">
@@ -266,7 +199,8 @@ export function WorkoutTimerDialog({
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            {/* Volume button with margin to leave room for the single X close button */}
+            <div className="flex items-center pr-8">
               <Button
                 type="button"
                 variant="ghost"
@@ -276,23 +210,6 @@ export function WorkoutTimerDialog({
                 title={muted ? "Ativar som" : "Desativar som"}
               >
                 {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleRequestClose}
-                title={confirmClose ? "Clique novamente para fechar" : "Fechar (requer 2 cliques)"}
-                className={cn(
-                  "h-8 px-2 text-xs font-semibold transition-all",
-                  confirmClose
-                    ? "bg-destructive/20 text-destructive border border-destructive/40"
-                    : "text-muted-foreground"
-                )}
-              >
-                <X className="h-4 w-4" />
-                {confirmClose && <span>Confirmar</span>}
               </Button>
             </div>
           </div>
