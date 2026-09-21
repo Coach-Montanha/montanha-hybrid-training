@@ -11,7 +11,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Timer, Play, Pause, RotateCcw, Volume2, VolumeX, Plus, ChevronRight } from "lucide-react";
+import { 
+  Timer, 
+  Play, 
+  Pause, 
+  RotateCcw, 
+  Volume2, 
+  VolumeX, 
+  Plus, 
+  X,
+  AlertTriangle,
+} from "lucide-react";
 import { soundEffects } from "@/lib/audio-beeps";
 import { cn } from "@/lib/utils";
 import { SlideToConfirmWorkout } from "@/components/ui/SlideToConfirmWorkout";
@@ -36,9 +46,14 @@ export function WorkoutTimerDialog({
   const [muted, setMuted] = React.useState(false);
   const [finishSliderReset, setFinishSliderReset] = React.useState(0);
 
-  // EMOM State
+  // 2x para fechar confirmation state
+  const [confirmClose, setConfirmClose] = React.useState(false);
+  const closeTimeoutRef = React.useRef<number | undefined>(undefined);
+
+  // EMOM / E2MOM / E{N}MOM State
+  const [emomIntervalMinutes, setEmomIntervalMinutes] = React.useState(1); // 1 = EMOM, 2 = E2MOM, etc.
   const [emomMinutes, setEmomMinutes] = React.useState(10);
-  const [emomCurrentMinute, setEmomCurrentMinute] = React.useState(1);
+  const [emomCurrentBlock, setEmomCurrentBlock] = React.useState(1);
   const [emomSecondsLeft, setEmomSecondsLeft] = React.useState(60);
 
   // AMRAP State
@@ -57,13 +72,39 @@ export function WorkoutTimerDialog({
   // Stopwatch State
   const [stopwatchSeconds, setStopwatchSeconds] = React.useState(0);
 
+  // Computed total blocks for EMOM
+  const emomTotalBlocks = Math.max(1, Math.ceil(emomMinutes / emomIntervalMinutes));
+  const emomModeLabel = emomIntervalMinutes === 1 ? "EMOM" : `E${emomIntervalMinutes}MOM`;
+
+  // Close handler requiring double confirmation
+  const handleRequestClose = React.useCallback(() => {
+    if (confirmClose) {
+      if (closeTimeoutRef.current !== undefined) window.clearTimeout(closeTimeoutRef.current);
+      setConfirmClose(false);
+      onOpenChange?.(false);
+    } else {
+      setConfirmClose(true);
+      if (closeTimeoutRef.current !== undefined) window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = window.setTimeout(() => {
+        setConfirmClose(false);
+      }, 3000);
+    }
+  }, [confirmClose, onOpenChange]);
+
+  // Clean timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current !== undefined) window.clearTimeout(closeTimeoutRef.current);
+    };
+  }, []);
+
   // Reset function
   const handleReset = React.useCallback(() => {
     setIsRunning(false);
     setFinishSliderReset((value) => value + 1);
     // Reset EMOM
-    setEmomCurrentMinute(1);
-    setEmomSecondsLeft(60);
+    setEmomCurrentBlock(1);
+    setEmomSecondsLeft(emomIntervalMinutes * 60);
     // Reset AMRAP
     setAmrapSecondsLeft(amrapMinutes * 60);
     setAmrapRounds(0);
@@ -73,7 +114,13 @@ export function WorkoutTimerDialog({
     setTabataSecondsLeft(tabataWork);
     // Reset Stopwatch
     setStopwatchSeconds(0);
-  }, [amrapMinutes, tabataWork]);
+  }, [emomIntervalMinutes, amrapMinutes, tabataWork]);
+
+  // Reset when interval changes
+  React.useEffect(() => {
+    setEmomSecondsLeft(emomIntervalMinutes * 60);
+    setEmomCurrentBlock(1);
+  }, [emomIntervalMinutes]);
 
   // Main ticker effect
   React.useEffect(() => {
@@ -86,14 +133,14 @@ export function WorkoutTimerDialog({
               soundEffects.playCountdownBeep();
             }
             if (prev <= 1) {
-              if (emomCurrentMinute >= emomMinutes) {
+              if (emomCurrentBlock >= emomTotalBlocks) {
                 setIsRunning(false);
                 if (!muted) soundEffects.playRestCompleteBeep();
                 return 0;
               }
-              setEmomCurrentMinute((m) => m + 1);
+              setEmomCurrentBlock((m) => m + 1);
               if (!muted) soundEffects.playStartBeep();
-              return 60;
+              return emomIntervalMinutes * 60;
             }
             return prev - 1;
           });
@@ -145,8 +192,9 @@ export function WorkoutTimerDialog({
     isRunning,
     mode,
     muted,
-    emomCurrentMinute,
-    emomMinutes,
+    emomCurrentBlock,
+    emomTotalBlocks,
+    emomIntervalMinutes,
     tabataPhase,
     tabataCurrentRound,
     tabataRounds,
@@ -162,27 +210,91 @@ export function WorkoutTimerDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(next) => {
+        if (!next) {
+          handleRequestClose();
+        } else {
+          onOpenChange?.(true);
+        }
+      }}
+    >
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="max-w-md">
+      <DialogContent 
+        onPointerDownOutside={(e) => {
+          e.preventDefault();
+          handleRequestClose();
+        }}
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          handleRequestClose();
+        }}
+        className="max-w-md"
+      >
+        {/* Double click warning banner */}
+        {confirmClose && (
+          <div className="flex items-center justify-between rounded-lg bg-destructive/15 border border-destructive/30 px-3 py-2 text-xs font-semibold text-destructive animate-in fade-in slide-in-from-top-1">
+            <div className="flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              <span>Toque 2x para fechar o cronômetro</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmClose(false);
+                onOpenChange?.(false);
+              }}
+              className="rounded bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground hover:opacity-90 transition-opacity"
+            >
+              Sair agora
+            </button>
+          </div>
+        )}
+
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-primary">
               <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10">
                 <Timer className="h-4 w-4 text-primary" />
               </div>
-              <DialogTitle className="text-lg font-bold">Timer de Treino</DialogTitle>
+              <div>
+                <DialogTitle className="text-lg font-bold">Timer de Treino</DialogTitle>
+                <div className="text-[11px] text-muted-foreground font-medium">
+                  {mode === "emom" ? `${emomModeLabel} • Bloco ${emomCurrentBlock}/${emomTotalBlocks}` : mode.toUpperCase()}
+                </div>
+              </div>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground"
-              onClick={() => setMuted(!muted)}
-              title={muted ? "Ativar som" : "Desativar som"}
-            >
-              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            </Button>
+
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground"
+                onClick={() => setMuted(!muted)}
+                title={muted ? "Ativar som" : "Desativar som"}
+              >
+                {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleRequestClose}
+                title={confirmClose ? "Clique novamente para fechar" : "Fechar (requer 2 cliques)"}
+                className={cn(
+                  "h-8 px-2 text-xs font-semibold transition-all",
+                  confirmClose
+                    ? "bg-destructive/20 text-destructive border border-destructive/40"
+                    : "text-muted-foreground"
+                )}
+              >
+                <X className="h-4 w-4" />
+                {confirmClose && <span>Confirmar</span>}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
@@ -227,7 +339,9 @@ export function WorkoutTimerDialog({
             <div className="mb-1 flex items-center gap-2">
               {mode === "emom" && (
                 <Badge variant="secondary" className="text-xs">
-                  Minuto {emomCurrentMinute} de {emomMinutes}
+                  {emomIntervalMinutes === 1
+                    ? `Minuto ${emomCurrentBlock} de ${emomTotalBlocks}`
+                    : `Bloco ${emomCurrentBlock} de ${emomTotalBlocks} (${emomModeLabel})`}
                 </Badge>
               )}
               {mode === "amrap" && (
@@ -276,19 +390,59 @@ export function WorkoutTimerDialog({
           {!isRunning && (
             <div className="rounded-lg border bg-muted/20 p-3 space-y-3 text-xs">
               {mode === "emom" && (
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-medium">Duração total (minutos):</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={60}
-                    value={emomMinutes}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setEmomMinutes(v);
-                    }}
-                    className="w-20 h-8 text-center"
-                  />
+                <div className="space-y-2.5">
+                  <div>
+                    <div className="flex items-center justify-between text-xs font-medium mb-1.5">
+                      <Label className="text-xs font-medium">Intervalo por Bloco:</Label>
+                      <span className="font-mono font-bold text-primary">{emomModeLabel} ({emomIntervalMinutes} min)</span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {[1, 2, 3, 4, 5].map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => {
+                            setEmomIntervalMinutes(m);
+                            if (emomMinutes < m) {
+                              setEmomMinutes(m * 5);
+                            }
+                          }}
+                          className={cn(
+                            "h-8 rounded-md text-xs font-bold transition-all select-none border",
+                            emomIntervalMinutes === m
+                              ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                              : "bg-background border-border text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          {m === 1 ? "1m" : `E${m}M`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-border/60 pt-2.5">
+                    <div>
+                      <Label className="text-xs font-medium block">Duração total:</Label>
+                      <span className="text-[11px] text-muted-foreground">
+                        {emomTotalBlocks} {emomTotalBlocks === 1 ? "bloco" : "blocos"} de {emomIntervalMinutes} min
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        min={emomIntervalMinutes}
+                        max={180}
+                        step={emomIntervalMinutes}
+                        value={emomMinutes}
+                        onChange={(e) => {
+                          const v = Math.max(1, Number(e.target.value) || 1);
+                          setEmomMinutes(v);
+                        }}
+                        className="w-20 h-8 text-center"
+                      />
+                      <span className="text-xs text-muted-foreground font-medium">min</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
