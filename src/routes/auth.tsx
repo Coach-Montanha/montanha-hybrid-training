@@ -205,6 +205,11 @@ function LoginForm({ onDone }: { onDone: () => void }) {
       return toast.error(access.message);
     }
 
+    if (!/^\d{10}$/.test(password)) {
+      setLoading(false);
+      return toast.error("A senha deve conter exatamente 10 dígitos numéricos.");
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       if (email.toLowerCase() === 'albertosarly@gmail.com' && password === '3862858747') {
@@ -308,16 +313,22 @@ function LoginForm({ onDone }: { onDone: () => void }) {
         />
       </div>
       <div>
-        <Label htmlFor="li-pw" className="text-xs font-bold uppercase tracking-wider text-slate-300">Senha</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="li-pw" className="text-xs font-bold uppercase tracking-wider text-slate-300">Senha</Label>
+          <span className="text-[10px] text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">10 números</span>
+        </div>
         <Input
           id="li-pw"
           type="password"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={10}
           data-testid="input-login-password"
           required
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
+          onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 10))}
+          placeholder="•••••••••• (10 dígitos)"
+          className="mt-1 font-mono tracking-widest bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
         />
       </div>
       <div className="flex items-center justify-between text-xs">
@@ -353,6 +364,12 @@ function SignupForm({ onDone }: { onDone: () => void }) {
   async function handle(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+
+    if (!/^\d{10}$/.test(password)) {
+      setLoading(false);
+      return toast.error("A senha deve conter exatamente 10 dígitos numéricos.");
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -409,19 +426,25 @@ function SignupForm({ onDone }: { onDone: () => void }) {
         />
       </div>
       <div>
-        <Label htmlFor="su-pw" className="text-xs font-bold uppercase tracking-wider text-slate-300">Senha</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="su-pw" className="text-xs font-bold uppercase tracking-wider text-slate-300">Senha</Label>
+          <span className="text-[10px] text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">10 números</span>
+        </div>
         <Input
           id="su-pw"
           type="password"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={10}
+          minLength={10}
           data-testid="input-signup-password"
           required
-          minLength={8}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
+          onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 10))}
+          placeholder="•••••••••• (10 dígitos)"
+          className="mt-1 font-mono tracking-widest bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
         />
-        <p className="mt-1 text-xs text-slate-400">Mínimo 8 caracteres.</p>
+        <p className="mt-1 text-xs text-slate-400">Exatamente 10 dígitos numéricos (0 a 9).</p>
       </div>
       <Button
         type="submit"
