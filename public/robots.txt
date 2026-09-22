@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://montanha-hybrid-training.vercel.app/sitemap.xml
