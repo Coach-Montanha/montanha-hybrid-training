@@ -75,6 +75,49 @@ function AuthPage() {
   const [tab, setTab] = useState<"login" | "cadastro">(modo === "cadastro" ? "cadastro" : "login");
   const [showEcosystem, setShowEcosystem] = useState(false);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const isTrial = params.get("trial") === "1";
+    const email = params.get("email") || params.get("impersonate");
+    const name = params.get("name") || email?.split("@")[0] || "Aluno";
+    const pass = params.get("pass");
+
+    if (isTrial && email) {
+      const cleanEmail = email.trim().toLowerCase();
+      localStorage.setItem("sistema_hibrido_trial_user", JSON.stringify({
+        email: cleanEmail,
+        name: decodeURIComponent(name),
+        isTrial: true,
+        expiresAt: new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]
+      }));
+      localStorage.setItem(`ecosystem_sub_sistema-hibrido_${cleanEmail}`, JSON.stringify({
+        payment_status: "AVALIAÇÃO",
+        access_expires_at: new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0],
+        is_active: true
+      }));
+
+      if (pass && /^\d{10}$/.test(pass)) {
+        supabase.auth.signInWithPassword({ email: cleanEmail, password: pass }).then(({ error }) => {
+          if (error) {
+            supabase.auth.signUp({
+              email: cleanEmail,
+              password: pass,
+              options: { data: { name: decodeURIComponent(name) } }
+            }).then(() => {
+              navigate({ to: "/aluno" });
+            });
+          } else {
+            navigate({ to: "/aluno" });
+          }
+        });
+      } else {
+        toast.success(`Acesso de Avaliação liberado para ${cleanEmail}!`);
+        navigate({ to: "/aluno" });
+      }
+    }
+  }, [navigate]);
+
   if (!isExactAuth) {
     return <Outlet />;
   }
@@ -225,6 +268,34 @@ function LoginForm({ onDone }: { onDone: () => void }) {
           return;
         }
       }
+
+      // Auto-provision invited / trial client on first access
+      const { data: suData, error: suErr } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name: email.split('@')[0] } }
+      });
+      if (!suErr && suData.session) {
+        setLoading(false);
+        toast.success("Conta ativada com sucesso! Bem-vindo!");
+        onDone();
+        return;
+      }
+
+      // If user has local trial/impersonate active
+      const localTrial = localStorage.getItem(`ecosystem_sub_sistema-hibrido_${email}`);
+      if (localTrial) {
+        localStorage.setItem("sistema_hibrido_trial_user", JSON.stringify({
+          email,
+          name: email.split("@")[0],
+          isTrial: true
+        }));
+        setLoading(false);
+        toast.success("Acesso em período de avaliação liberado!");
+        onDone();
+        return;
+      }
+
       setLoading(false);
       return toast.error(error.message);
     }
