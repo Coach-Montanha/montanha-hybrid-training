@@ -109,6 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "Plataforma de Alta Performance, Endurance & Periodização de Treino." },
       { name: "twitter:image", content: "https://montanha-hybrid-training.vercel.app/icon-512.png" },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
+      { name: "theme-color", content: "#09090b" },
       { name: "google-site-verification", content: "GSC_VERIFICATION_PLACEHOLDER" },
     ],
     links: [
