@@ -586,8 +586,7 @@ function AuthPage() {
           )}
         </div>
       </div>
-    </div>
-  );
+
       {/* Ecosystem Drawer Toggle */}
       <div className="mt-4 text-center">
         <button
