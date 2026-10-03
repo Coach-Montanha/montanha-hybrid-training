@@ -2,15 +2,26 @@ import { createFileRoute, Link, useNavigate, Outlet, useRouterState } from "@tan
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { checkAndLockGuestDemo, validateEmailMx, checkProjectAccess } from "@/services/ecosystem-auth-service";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { validateEmailMx, checkProjectAccess } from "@/services/ecosystem-auth-service";
 import { toast } from "sonner";
-import { Mountain, Sparkles, Zap, Globe, ChevronDown, ChevronUp, Lock, ShieldCheck } from "lucide-react";
+import {
+  Mountain,
+  Sparkles,
+  Globe,
+  ChevronDown,
+  ChevronUp,
+  Lock,
+  ShieldCheck,
+  KeyRound,
+  Mail,
+  User,
+  Eye,
+  EyeOff,
+  Smartphone,
+  ArrowRight,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
 
 const searchSchema = z.object({ modo: z.enum(["login", "cadastro"]).optional() });
 
@@ -20,8 +31,8 @@ const ECOSYSTEM_APPS = [
     name: "Montanha Hybrid Training",
     tag: "Performance & Treino",
     slogan: "Alta Performance & Periodização de Treino",
-    accent: "#06b6d4",
-    badgeBg: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
+    accent: "#dc2626",
+    badgeBg: "bg-red-500/20 text-red-300 border-red-500/40",
     isCurrent: true,
   },
   {
@@ -38,8 +49,8 @@ const ECOSYSTEM_APPS = [
     name: "Montanha Personal Studio",
     tag: "Finanças & Operação",
     slogan: "Gestão Financeira & Inteligência para Studios",
-    accent: "#10b981",
-    badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+    accent: "#6958e2",
+    badgeBg: "bg-purple-500/20 text-purple-300 border-purple-500/40",
     isCurrent: false,
   },
   {
@@ -47,8 +58,8 @@ const ECOSYSTEM_APPS = [
     name: "Montanha Language AI",
     tag: "Idiomas & IA",
     slogan: "Tutor de Idiomas com IA & Treinos Diários",
-    accent: "#6366f1",
-    badgeBg: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
+    accent: "#06b6d4",
+    badgeBg: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
     isCurrent: false,
   },
   {
@@ -56,8 +67,8 @@ const ECOSYSTEM_APPS = [
     name: "Montanha WhatsApp Automation",
     tag: "SaaS & CRM",
     slogan: "Automação Multi-Tenant & Disparos WhatsApp",
-    accent: "#a855f7",
-    badgeBg: "bg-purple-500/20 text-purple-300 border-purple-500/40",
+    accent: "#10b981",
+    badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
     isCurrent: false,
   },
 ];
@@ -72,22 +83,36 @@ function AuthPage() {
   const navigate = useNavigate();
   const routerState = useRouterState();
   const isExactAuth = routerState.location.pathname === "/auth";
-  const [tab, setTab] = useState<"login" | "cadastro">(modo === "cadastro" ? "cadastro" : "login");
+
+  const [view, setView] = useState<"signin" | "signup">(modo === "cadastro" ? "signup" : "signin");
+  const [authMethod, setAuthMethod] = useState<"pin" | "email">("pin");
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showEcosystem, setShowEcosystem] = useState(false);
+
+  // Form state
+  const [email, setEmail] = useState("");
+  const [pin, setPin] = useState("");
+  const [password, setPassword] = useState("");
+  const [nome, setNome] = useState("");
+  const [showReset, setShowReset] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
+  // Brand Color Accent: #dc2626 (Athletic Crimson)
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const isTrial = params.get("trial") === "1";
-    const email = params.get("email") || params.get("impersonate");
-    const name = params.get("name") || email?.split("@")[0] || "Aluno";
+    const trialEmail = params.get("email") || params.get("impersonate");
+    const trialName = params.get("name") || trialEmail?.split("@")[0] || "Aluno";
     const pass = params.get("pass");
 
-    if (isTrial && email) {
-      const cleanEmail = email.trim().toLowerCase();
+    if (isTrial && trialEmail) {
+      const cleanEmail = trialEmail.trim().toLowerCase();
       localStorage.setItem("sistema_hibrido_trial_user", JSON.stringify({
         email: cleanEmail,
-        name: decodeURIComponent(name),
+        name: decodeURIComponent(trialName),
         isTrial: true,
         expiresAt: new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]
       }));
@@ -103,7 +128,7 @@ function AuthPage() {
             supabase.auth.signUp({
               email: cleanEmail,
               password: pass,
-              options: { data: { name: decodeURIComponent(name) } }
+              options: { data: { name: decodeURIComponent(trialName) } }
             }).then(() => {
               navigate({ to: "/aluno" });
             });
@@ -134,397 +159,550 @@ function AuthPage() {
     else navigate({ to: "/aluno" });
   }
 
-  return (
-    <div className="relative flex min-h-screen flex-col justify-center items-center bg-slate-950 text-slate-100 p-4 font-sans overflow-hidden">
-      {/* Glow aura background */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -left-32 -top-32 h-[520px] w-[520px] rounded-full bg-cyan-500/20 blur-[130px]" />
-        <div className="absolute -bottom-40 -right-32 h-[560px] w-[560px] rounded-full bg-cyan-600/15 blur-[150px]" />
-      </div>
-
-      <div className="w-full max-w-md space-y-4">
-        {/* Header Branding */}
-        <div className="flex items-center justify-center text-center pb-2">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 shadow-md">
-              <Mountain className="h-5 w-5" />
-            </div>
-            <div className="text-left">
-              <span className="text-base font-black tracking-tight text-white block">Montanha Hybrid Training</span>
-              <span className="text-[10px] text-slate-400">Alta Performance &amp; Periodização de Treino</span>
-            </div>
-          </Link>
-        </div>
-
-        <Card className="p-6 border border-cyan-500/30 bg-slate-950/90 shadow-[0_0_50px_rgba(6,182,212,0.15)] backdrop-blur-2xl rounded-2xl">
-          <Tabs value={tab} onValueChange={(v) => setTab(v === "cadastro" ? "cadastro" : "login")}>
-            <TabsList className="grid w-full grid-cols-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
-              <TabsTrigger value="login" id="auth-tab-login" data-testid="tab-login" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 font-bold transition-all text-xs py-2 rounded-lg">
-                Entrar
-              </TabsTrigger>
-              <TabsTrigger value="cadastro" id="auth-tab-cadastro" data-testid="tab-cadastro" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 font-bold transition-all text-xs py-2 rounded-lg">
-                Criar conta
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="login" id="auth-content-login">
-              <LoginForm onDone={routeAfterLogin} />
-            </TabsContent>
-            <TabsContent value="cadastro" id="auth-content-cadastro">
-              <SignupForm onDone={() => navigate({ to: "/app" })} />
-            </TabsContent>
-          </Tabs>
-        </Card>
-
-        {/* Footer Ecosystem Button */}
-        <div className="text-center pt-1">
-          <button
-            type="button"
-            onClick={() => setShowEcosystem(!showEcosystem)}
-            className="text-xs text-cyan-400 hover:text-cyan-300 font-bold inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 transition-all cursor-pointer shadow-md"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span>🌐 Ecossistema (5 Apps Integrados)</span>
-            {showEcosystem ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
-        </div>
-
-        {/* Ecosystem Drawer */}
-        {showEcosystem && (
-          <div className="p-3.5 rounded-2xl bg-slate-900/95 border border-cyan-500/40 shadow-2xl space-y-2 animate-in fade-in">
-            <div className="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5 uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Plataformas do Ecossistema Montanha</span>
-            </div>
-            <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-              {ECOSYSTEM_APPS.map((app) => (
-                <div
-                  key={app.id}
-                  className={`p-2 rounded-xl border text-xs flex items-center justify-between transition-all ${
-                    app.isCurrent
-                      ? "bg-cyan-500/10 border-cyan-500/50 text-white"
-                      : "bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-700"
-                  }`}
-                >
-                  <div className="flex flex-col">
-                    <span className="font-bold flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: app.accent }} />
-                      {app.name}
-                    </span>
-                    <span className="text-[10px] text-slate-400">{app.slogan}</span>
-                  </div>
-                  <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full border ${app.badgeBg}`}>
-                    {app.isCurrent ? "ATUAL" : app.tag}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function LoginForm({ onDone }: { onDone: () => void }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showReset, setShowReset] = useState(false);
-  const [resetSent, setResetSent] = useState(false);
-
-  async function handle(e: React.FormEvent) {
+  async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
 
-    const mx = await validateEmailMx(email);
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanCredential = authMethod === "pin" ? pin.trim() : password.trim();
+
+    if (!cleanEmail) {
+      setLoading(false);
+      return toast.error("Por favor, digite seu e-mail.");
+    }
+
+    if (authMethod === "pin") {
+      if (!/^\d{6,}$/.test(cleanCredential)) {
+        setLoading(false);
+        return toast.error("O PIN de acesso deve conter no mínimo 6 dígitos numéricos.");
+      }
+    } else {
+      if (!cleanCredential || cleanCredential.length < 6) {
+        setLoading(false);
+        return toast.error("A senha deve conter no mínimo 6 caracteres.");
+      }
+    }
+
+    const mx = await validateEmailMx(cleanEmail);
     if (!mx.valid) {
       setLoading(false);
       return toast.error(mx.reason || "E-mail inválido.");
     }
 
-    const access = await checkProjectAccess(null, 'sistema-hibrido', email);
+    const access = await checkProjectAccess(null, 'sistema-hibrido', cleanEmail);
     if (!access.hasAccess) {
       setLoading(false);
       return toast.error(access.message);
     }
 
-    if (!/^\d{10}$/.test(password)) {
-      setLoading(false);
-      return toast.error("A senha deve conter exatamente 10 dígitos numéricos.");
-    }
+    const { error } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password: cleanCredential,
+    });
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      if (email.toLowerCase() === 'albertosarly@gmail.com' && password === '3862858747') {
-        const { data: suData, error: suErr } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { name: 'Alberto Sarly' } }
-        });
-        if (!suErr && suData.session) {
-          setLoading(false);
-          toast.success("Bem-vindo, Alberto Sarly!");
-          onDone();
-          return;
-        }
-      }
-
       // Auto-provision invited / trial client on first access
       const { data: suData, error: suErr } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { name: email.split('@')[0] } }
+        email: cleanEmail,
+        password: cleanCredential,
+        options: { data: { name: cleanEmail.split('@')[0] } }
       });
+
       if (!suErr && suData.session) {
         setLoading(false);
         toast.success("Conta ativada com sucesso! Bem-vindo!");
-        onDone();
+        routeAfterLogin();
         return;
       }
 
-      // If user has local trial/impersonate active
-      const localTrial = localStorage.getItem(`ecosystem_sub_sistema-hibrido_${email}`);
+      const localTrial = localStorage.getItem(`ecosystem_sub_sistema-hibrido_${cleanEmail}`);
       if (localTrial) {
         localStorage.setItem("sistema_hibrido_trial_user", JSON.stringify({
-          email,
-          name: email.split("@")[0],
+          email: cleanEmail,
+          name: cleanEmail.split("@")[0],
           isTrial: true
         }));
         setLoading(false);
         toast.success("Acesso em período de avaliação liberado!");
-        onDone();
+        routeAfterLogin();
         return;
       }
 
       setLoading(false);
+      const userMsg = error.message === "Invalid login credentials"
+        ? "Credenciais inválidas. Verifique seu e-mail e PIN de 10 dígitos."
+        : error.message;
+      return toast.error(userMsg);
+    }
+
+    setLoading(false);
+    toast.success("Bem-vindo ao Hybrid Training!");
+    routeAfterLogin();
+  }
+
+  async function handleSignUp(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanCredential = authMethod === "pin" ? pin.trim() : password.trim();
+
+    if (authMethod === "pin" && !/^\d{10}$/.test(cleanCredential)) {
+      setLoading(false);
+      return toast.error("A senha deve conter exatamente 10 dígitos numéricos.");
+    }
+
+    if (authMethod === "email" && cleanCredential.length < 6) {
+      setLoading(false);
+      return toast.error("A senha deve conter no mínimo 6 caracteres.");
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email: cleanEmail,
+      password: cleanCredential,
+      options: { emailRedirectTo: window.location.origin, data: { nome } },
+    });
+
+    if (error) {
+      setLoading(false);
       return toast.error(error.message);
     }
+
+    if (data.user) {
+      const { error: cErr } = await supabase.from("coaches").insert({
+        auth_user_id: data.user.id,
+        nome,
+        email: cleanEmail,
+      });
+      if (cErr) {
+        console.warn("Erro ao registrar perfil de treinador:", cErr);
+      }
+    }
+
     setLoading(false);
-    toast.success("Bem-vindo!");
-    onDone();
+    toast.success("Conta criada com sucesso!");
+    navigate({ to: "/app" });
   }
 
   async function handleReset(e: React.FormEvent) {
     e.preventDefault();
     if (!email) return toast.error("Informe seu e-mail.");
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
       redirectTo: `${window.location.origin}/auth`,
     });
     setLoading(false);
     if (error) return toast.error(error.message);
     setResetSent(true);
-    toast.success("Instruções de recuperação enviadas ao e-mail informado!");
+    toast.success("Instruções enviadas para o seu e-mail!");
   }
 
-  if (showReset) {
-    return (
-      <div className="mt-4 space-y-4">
-        <h3 className="text-sm font-bold text-white">Recuperação de Senha</h3>
-        {resetSent ? (
-          <div className="space-y-3 text-center">
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Enviamos as instruções para <b>{email}</b>. Verifique sua caixa de entrada e spam.
-            </p>
+  return (
+    <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
+      {/* Background Mesh Glow */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-[#dc2626]/25 blur-[160px]" />
+        <div className="absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-[#ef4444]/20 blur-[160px]" />
+      </div>
+
+      {/* Stage Card */}
+      <div className="w-full max-w-[920px] bg-slate-900/90 border border-[#dc2626]/30 rounded-3xl shadow-[0_0_60px_rgba(220,38,38,0.25)] backdrop-blur-2xl overflow-hidden flex flex-col md:flex-row min-h-[580px] my-auto">
+        
+        {/* A) NAV RAIL */}
+        <nav className="w-full md:w-24 bg-slate-950/80 border-b md:border-b-0 md:border-r border-slate-800/80 p-4 flex md:flex-col items-center justify-between z-20 flex-shrink-0">
+          <div className="flex flex-col items-center gap-2">
+            <Link to="/" className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#dc2626] to-[#b91c1c] p-0.5 shadow-lg shadow-[#dc2626]/40 flex items-center justify-center">
+              <div className="h-full w-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                <Mountain className="h-6 w-6 text-[#dc2626]" />
+              </div>
+            </Link>
+            <span className="text-[10px] font-black tracking-widest text-[#dc2626] uppercase">Hybrid</span>
+          </div>
+
+          <div className="flex md:flex-col items-center gap-3">
             <button
               type="button"
-              onClick={() => { setShowReset(false); setResetSent(false); }}
-              className="text-xs text-cyan-400 hover:underline font-bold"
+              onClick={() => setView("signin")}
+              aria-label="Entrar na conta"
+              className={`min-h-[44px] min-w-[44px] px-4 py-2 md:py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-bold ${
+                view === "signin"
+                  ? "bg-[#dc2626] text-white shadow-lg shadow-[#dc2626]/40"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+              }`}
             >
-              ← Voltar ao Login
+              <User className="h-5 w-5" />
+              <span>Entrar</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setView("signup")}
+              aria-label="Criar nova conta"
+              className={`min-h-[44px] min-w-[44px] px-4 py-2 md:py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-bold ${
+                view === "signup"
+                  ? "bg-[#dc2626] text-white shadow-lg shadow-[#dc2626]/40"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+              }`}
+            >
+              <Sparkles className="h-5 w-5" />
+              <span>Cadastrar</span>
             </button>
           </div>
-        ) : (
-          <form onSubmit={handleReset} className="space-y-3">
-            <div>
-              <Label htmlFor="reset-email" className="text-xs font-bold uppercase tracking-wider text-slate-300">Seu E-mail</Label>
-              <Input
-                id="reset-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu.email@exemplo.com"
-                className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full font-black text-xs uppercase tracking-wider bg-cyan-500 hover:bg-cyan-600 text-slate-950 rounded-xl transition-all h-10"
-              disabled={loading}
-            >
-              {loading ? "Enviando..." : "Enviar instruções de reset"}
-            </Button>
-            <button
-              type="button"
-              onClick={() => setShowReset(false)}
-              className="w-full text-center text-xs text-slate-400 hover:text-white transition"
-            >
-              ← Voltar para o login
-            </button>
-          </form>
-        )}
-      </div>
-    );
-  }
 
-  return (
-    <form onSubmit={handle} className="mt-4 space-y-4">
-      <div>
-        <Label htmlFor="li-email" className="text-xs font-bold uppercase tracking-wider text-slate-300">E-mail</Label>
-        <Input
-          id="li-email"
-          type="email"
-          data-testid="input-login-email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="seu.email@exemplo.com"
-          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
-        />
-      </div>
-      <div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="li-pw" className="text-xs font-bold uppercase tracking-wider text-slate-300">Senha</Label>
-          <span className="text-[10px] text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">10 números</span>
+          <div className="hidden md:flex flex-col items-center text-[10px] text-slate-400">
+            <ShieldCheck className="h-4 w-4 text-[#dc2626] mb-1" />
+            <span>SSL 256</span>
+          </div>
+        </nav>
+
+        {/* B) FLOATING HERO CARD */}
+        <div className="w-full md:w-80 relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-[#dc2626]/30 p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800/80">
+          <div aria-hidden className="absolute -top-24 -left-24 w-64 h-64 bg-[#dc2626]/30 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10 space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#dc2626]/20 border border-[#dc2626]/40 text-[#dc2626] text-xs font-bold">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>ATHLETIC CRIMSON • HYBRID</span>
+            </div>
+
+            {view === "signin" ? (
+              <div className="space-y-3 animate-in fade-in">
+                <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                  Montanha Hybrid Training
+                </h2>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Alta Performance, Prescrição & Periodização Avançada de Treino Esportivo.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 animate-in fade-in">
+                <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                  Evolua a Performance dos seus Atletas
+                </h2>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Controle cargas, prescreva planilhas e acompanhe a evolução com máxima precisão.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="relative z-10 pt-6 border-t border-slate-800/80 space-y-3">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <CheckCircle2 className="h-4 w-4 text-[#dc2626]" />
+              <span>PIN 10 Dígitos Padronizado</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <CheckCircle2 className="h-4 w-4 text-[#dc2626]" />
+              <span>Sincronização Multi-Tenant</span>
+            </div>
+            <a
+              href="#terms"
+              onClick={(e) => { e.preventDefault(); toast.info("Montanha Hybrid Training v2.4"); }}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#dc2626] hover:underline pt-2"
+            >
+              <span>Termos &amp; Diretrizes do Ecossistema</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
         </div>
-        <Input
-          id="li-pw"
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={10}
-          data-testid="input-login-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 10))}
-          placeholder="•••••••••• (10 dígitos)"
-          className="mt-1 font-mono tracking-widest bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
-        />
+
+        {/* C) FORM PANEL */}
+        <div className="flex-1 p-6 md:p-10 flex flex-col justify-between bg-slate-950/60">
+          {showReset ? (
+            <div className="space-y-6 my-auto">
+              <div>
+                <h3 className="text-xl font-bold text-white">Recuperar Senha</h3>
+                <p className="text-xs text-slate-400 mt-1">Informe seu e-mail cadastrado para receber as instruções.</p>
+              </div>
+
+              {resetSent ? (
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-3">
+                  <div className="flex items-center gap-2 font-bold text-sm">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                    <span>Instruções enviadas!</span>
+                  </div>
+                  <p className="text-xs text-slate-300">Confira a caixa de entrada e a pasta de spam do e-mail <b>{email}</b>.</p>
+                  <button
+                    type="button"
+                    onClick={() => { setShowReset(false); setResetSent(false); }}
+                    className="text-xs font-bold text-[#dc2626] hover:underline block pt-2"
+                  >
+                    ← Voltar ao login
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleReset} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="reset-email-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">E-mail</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <input
+                        id="reset-email-hybrid"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="seu.email@exemplo.com"
+                        style={{ fontSize: "16px" }}
+                        className="w-full h-11 pl-10 pr-4 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-11 rounded-xl bg-gradient-to-r from-[#dc2626] to-[#ef4444] text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#dc2626]/30 hover:opacity-95 transition-all flex items-center justify-center gap-2 min-h-[44px]"
+                  >
+                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <span>Enviar Link de Reset</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowReset(false)}
+                    className="w-full text-center text-xs text-slate-400 hover:text-white pt-2"
+                  >
+                    ← Voltar para o login
+                  </button>
+                </form>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6 my-auto">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-white">
+                    {view === "signin" ? "Acessar Plataforma" : "Criar sua Conta"}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {view === "signin"
+                      ? "Informe suas credenciais ou PIN de 10 dígitos."
+                      : "Preencha seus dados para cadastro como treinador."}
+                  </p>
+                </div>
+
+                <div className="bg-slate-900 p-1 rounded-xl border border-slate-800 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setAuthMethod("pin")}
+                    aria-label="Autenticação por PIN de 10 dígitos"
+                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      authMethod === "pin"
+                        ? "bg-[#dc2626] text-white shadow-md shadow-[#dc2626]/30"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <Smartphone className="h-3.5 w-3.5" />
+                    <span>PIN 10 Dígitos</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuthMethod("email")}
+                    aria-label="Autenticação por Senha"
+                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      authMethod === "email"
+                        ? "bg-[#dc2626] text-white shadow-md shadow-[#dc2626]/30"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <KeyRound className="h-3.5 w-3.5" />
+                    <span>Senha</span>
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={view === "signin" ? handleSignIn : handleSignUp} className="space-y-4">
+                {view === "signup" && (
+                  <div className="space-y-1.5">
+                    <label htmlFor="su-nome-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">Nome Completo</label>
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <input
+                        id="su-nome-hybrid"
+                        type="text"
+                        required
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        placeholder="Ex: Coach Montanha"
+                        style={{ fontSize: "16px" }}
+                        className="w-full h-11 pl-10 pr-4 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label htmlFor="si-email-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">E-mail</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <input
+                      id="si-email-hybrid"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu.email@exemplo.com"
+                      style={{ fontSize: "16px" }}
+                      className="w-full h-11 pl-10 pr-4 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
+                    />
+                  </div>
+                </div>
+
+                {authMethod === "pin" ? (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="pin-input-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">PIN de Acesso</label>
+                    </div>
+                    <div className="relative">
+                      <Smartphone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <input
+                        id="pin-input-hybrid"
+                        type="password"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={12}
+                        required
+                        value={pin}
+                        onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 12))}
+                        placeholder="••••••••"
+                        style={{ fontSize: "16px" }}
+                        className="w-full h-11 pl-10 pr-12 bg-slate-900 border border-slate-800 rounded-xl text-white tracking-widest font-mono placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPass(!showPass)}
+                        aria-label="Alternar visibilidade do PIN"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white"
+                      >
+                        {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <label htmlFor="password-input-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">Senha</label>
+                    <div className="relative">
+                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <input
+                        id="password-input-hybrid"
+                        type={showPass ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        style={{ fontSize: "16px" }}
+                        className="w-full h-11 pl-10 pr-12 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPass(!showPass)}
+                        aria-label="Alternar visibilidade da senha"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white"
+                      >
+                        {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {view === "signin" && (
+                  <div className="flex items-center justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowReset(true)}
+                      className="text-xs font-bold text-[#dc2626] hover:underline"
+                    >
+                      Esqueci a senha
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  aria-label={view === "signin" ? "Entrar no Hybrid Training" : "Criar conta de treinador"}
+                  className="w-full h-11 rounded-xl bg-gradient-to-r from-[#dc2626] to-[#ef4444] text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#dc2626]/30 hover:opacity-95 transition-all flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <span>{view === "signin" ? "Entrar no Hybrid Training" : "Criar Conta de Treinador"}</span>
+                </button>
+              </form>
+
+              <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800/60">
+                {view === "signin" ? (
+                  <span>
+                    Ainda não tem conta?{" "}
+                    <button
+                      type="button"
+                      onClick={() => setView("signup")}
+                      className="font-bold text-[#dc2626] hover:underline ml-1"
+                    >
+                      Cadastre-se aqui
+                    </button>
+                  </span>
+                ) : (
+                  <span>
+                    Já é cadastrado?{" "}
+                    <button
+                      type="button"
+                      onClick={() => setView("signin")}
+                      className="font-bold text-[#dc2626] hover:underline ml-1"
+                    >
+                      Fazer login
+                    </button>
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex items-center justify-between text-xs">
-        <label className="flex items-center gap-2 text-slate-400">
-          <Checkbox defaultChecked disabled /> Lembrar de mim
-        </label>
+
+      {/* Ecosystem Drawer Toggle */}
+      <div className="mt-4 text-center">
         <button
           type="button"
-          onClick={() => setShowReset(true)}
-          className="text-cyan-400 hover:underline font-medium cursor-pointer"
+          onClick={() => setShowEcosystem(!showEcosystem)}
+          className="text-xs text-[#dc2626] hover:text-red-400 font-bold inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#dc2626]/10 border border-[#dc2626]/30 transition-all cursor-pointer shadow-md min-h-[44px]"
         >
-          Esqueci a senha
+          <Globe className="w-3.5 h-3.5" />
+          <span>🌐 Ecossistema Montanha (5 Apps Integrados)</span>
+          {showEcosystem ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
       </div>
-      <Button
-        type="submit"
-        data-testid="btn-submit-login"
-        className="w-full font-black text-xs uppercase tracking-wider bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 text-slate-950 rounded-xl shadow-lg transition-all h-10 cursor-pointer"
-        disabled={loading}
-      >
-        {loading ? "Entrando..." : "Entrar no Hybrid Training"}
-      </Button>
-    </form>
-  );
-}
 
-function SignupForm({ onDone }: { onDone: () => void }) {
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handle(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-
-    if (!/^\d{10}$/.test(password)) {
-      setLoading(false);
-      return toast.error("A senha deve conter exatamente 10 dígitos numéricos.");
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: window.location.origin, data: { nome } },
-    });
-    if (error) {
-      setLoading(false);
-      return toast.error(error.message);
-    }
-    // cria registro do coach
-    if (data.user) {
-      const { error: cErr } = await supabase.from("coaches").insert({
-        auth_user_id: data.user.id,
-        nome,
-        email,
-      });
-      if (cErr) {
-        setLoading(false);
-        return toast.error(
-          "Cadastro criado, mas falhou ao criar perfil de treinador: " + cErr.message,
-        );
-      }
-    }
-    setLoading(false);
-    toast.success("Conta criada!");
-    onDone();
-  }
-
-  return (
-    <form onSubmit={handle} className="mt-4 space-y-4">
-      <div>
-        <Label htmlFor="su-nome" className="text-xs font-bold uppercase tracking-wider text-slate-300">Seu nome</Label>
-        <Input
-          id="su-nome"
-          data-testid="input-signup-nome"
-          required
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          placeholder="Ex: Coach Montanha"
-          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
-        />
-      </div>
-      <div>
-        <Label htmlFor="su-email" className="text-xs font-bold uppercase tracking-wider text-slate-300">E-mail</Label>
-        <Input
-          id="su-email"
-          type="email"
-          data-testid="input-signup-email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="seu.email@exemplo.com"
-          className="mt-1 bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
-        />
-      </div>
-      <div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="su-pw" className="text-xs font-bold uppercase tracking-wider text-slate-300">Senha</Label>
-          <span className="text-[10px] text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">10 números</span>
+      {showEcosystem && (
+        <div className="mt-3 w-full max-w-[920px] p-4 rounded-2xl bg-slate-900/95 border border-[#dc2626]/40 shadow-2xl space-y-2 animate-in fade-in">
+          <div className="text-[11px] font-bold text-red-300 flex items-center gap-1.5 uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-[#dc2626]" />
+            <span>Plataformas do Ecossistema Montanha</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {ECOSYSTEM_APPS.map((app) => (
+              <div
+                key={app.id}
+                className={`p-3 rounded-xl border text-xs flex items-center justify-between transition-all ${
+                  app.isCurrent
+                    ? "bg-[#dc2626]/15 border-[#dc2626]/50 text-white"
+                    : "bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-700"
+                }`}
+              >
+                <div className="flex flex-col">
+                  <span className="font-bold flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: app.accent }} />
+                    {app.name}
+                  </span>
+                  <span className="text-[10px] text-slate-400">{app.slogan}</span>
+                </div>
+                <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full border ${app.badgeBg}`}>
+                  {app.isCurrent ? "ATUAL" : app.tag}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <Input
-          id="su-pw"
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={10}
-          minLength={10}
-          data-testid="input-signup-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 10))}
-          placeholder="•••••••••• (10 dígitos)"
-          className="mt-1 font-mono tracking-widest bg-slate-900/90 border-slate-800 text-white rounded-xl focus:border-cyan-500"
-        />
-        <p className="mt-1 text-xs text-slate-400">Exatamente 10 dígitos numéricos (0 a 9).</p>
-      </div>
-      <Button
-        type="submit"
-        data-testid="btn-submit-signup"
-        className="w-full font-black text-xs uppercase tracking-wider bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 text-slate-950 rounded-xl shadow-lg transition-all h-10"
-        disabled={loading}
-      >
-        {loading ? "Criando..." : "Criar conta de treinador"}
-      </Button>
-    </form>
+      )}
+    </div>
   );
 }
