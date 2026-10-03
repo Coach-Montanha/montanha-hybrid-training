@@ -362,7 +362,7 @@ function AuthPage() {
           <div className="relative z-10 space-y-4">
             {view === "signin" ? (
               <div className="space-y-3 animate-in fade-in">
-                <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                <h2 className="text-2xl md:text-3xl font-extrabold !text-white text-white tracking-tight leading-tight" style={{ color: "#ffffff" }}>
                   Montanha Hybrid Training
                 </h2>
                 <p className="text-sm text-slate-300 leading-relaxed">
@@ -371,7 +371,7 @@ function AuthPage() {
               </div>
             ) : (
               <div className="space-y-3 animate-in fade-in">
-                <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                <h2 className="text-2xl md:text-3xl font-extrabold !text-white text-white tracking-tight leading-tight" style={{ color: "#ffffff" }}>
                   Evolua a Performance dos seus Atletas
                 </h2>
                 <p className="text-sm text-slate-300 leading-relaxed">
@@ -398,7 +398,7 @@ function AuthPage() {
           {showReset ? (
             <div className="space-y-6 my-auto">
               <div>
-                <h3 className="text-2xl font-bold text-white tracking-tight">Recuperar Senha</h3>
+                <h3 className="text-2xl font-bold !text-white text-white tracking-tight" style={{ color: "#ffffff" }}>Recuperar Senha</h3>
                 <p className="text-sm text-slate-400 mt-1">Informe seu e-mail cadastrado para receber as instruções.</p>
               </div>
 
@@ -458,7 +458,7 @@ function AuthPage() {
           ) : (
             <div className="space-y-6 my-auto">
               <div>
-                <h3 className="text-2xl font-bold text-white tracking-tight">
+                <h3 className="text-2xl font-bold !text-white text-white tracking-tight" style={{ color: "#ffffff" }}>
                   {view === "signin" ? "Acessar Plataforma" : "Criar sua Conta"}
                 </h3>
                 <p className="text-sm text-slate-400 mt-1">
