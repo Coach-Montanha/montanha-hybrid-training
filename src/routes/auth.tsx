@@ -301,22 +301,22 @@ function AuthPage() {
     <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
       {/* Background Mesh Glow */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-[#dc2626]/25 blur-[160px]" />
-        <div className="absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-[#ef4444]/20 blur-[160px]" />
+        <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-[#dc2626]/20 blur-[160px]" />
+        <div className="absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-[#ef4444]/15 blur-[160px]" />
       </div>
 
       {/* Stage Card */}
-      <div className="w-full max-w-[920px] bg-slate-900/90 border border-[#dc2626]/30 rounded-3xl shadow-[0_0_60px_rgba(220,38,38,0.25)] backdrop-blur-2xl overflow-hidden flex flex-col md:flex-row min-h-[580px] my-auto">
+      <div className="w-full max-w-[900px] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[560px] my-auto">
         
         {/* A) NAV RAIL */}
-        <nav className="w-full md:w-24 bg-slate-950/80 border-b md:border-b-0 md:border-r border-slate-800/80 p-4 flex md:flex-col items-center justify-between z-20 flex-shrink-0">
-          <div className="flex flex-col items-center gap-2">
-            <Link to="/" className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#dc2626] to-[#b91c1c] p-0.5 shadow-lg shadow-[#dc2626]/40 flex items-center justify-center">
+        <nav className="w-full md:w-24 bg-slate-950 border-b md:border-b-0 md:border-r border-slate-800 p-4 flex md:flex-col items-center justify-between z-20 flex-shrink-0">
+          <div className="flex flex-col items-center gap-1.5">
+            <Link to="/" className="h-11 w-11 rounded-2xl bg-gradient-to-br from-[#dc2626] to-[#b91c1c] p-0.5 shadow-md flex items-center justify-center">
               <div className="h-full w-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-                <Mountain className="h-6 w-6 text-[#dc2626]" />
+                <Mountain className="h-5 w-5 text-[#dc2626]" />
               </div>
             </Link>
-            <span className="text-[10px] font-black tracking-widest text-[#dc2626] uppercase">Hybrid</span>
+            <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Hybrid</span>
           </div>
 
           <div className="flex md:flex-col items-center gap-3">
@@ -324,10 +324,10 @@ function AuthPage() {
               type="button"
               onClick={() => setView("signin")}
               aria-label="Entrar na conta"
-              className={`min-h-[44px] min-w-[44px] px-4 py-2 md:py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-bold ${
+              className={`min-h-[44px] min-w-[44px] px-4 py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-bold ${
                 view === "signin"
-                  ? "bg-[#dc2626] text-white shadow-lg shadow-[#dc2626]/40"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  ? "bg-[#dc2626] text-white shadow-md shadow-[#dc2626]/30"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
               <User className="h-5 w-5" />
@@ -338,10 +338,10 @@ function AuthPage() {
               type="button"
               onClick={() => setView("signup")}
               aria-label="Criar nova conta"
-              className={`min-h-[44px] min-w-[44px] px-4 py-2 md:py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-bold ${
+              className={`min-h-[44px] min-w-[44px] px-4 py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-bold ${
                 view === "signup"
-                  ? "bg-[#dc2626] text-white shadow-lg shadow-[#dc2626]/40"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  ? "bg-[#dc2626] text-white shadow-md shadow-[#dc2626]/30"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/60"
               }`}
             >
               <Sparkles className="h-5 w-5" />
@@ -349,29 +349,24 @@ function AuthPage() {
             </button>
           </div>
 
-          <div className="hidden md:flex flex-col items-center text-[10px] text-slate-400">
-            <ShieldCheck className="h-4 w-4 text-[#dc2626] mb-1" />
+          <div className="hidden md:flex flex-col items-center text-[10px] text-slate-500">
+            <ShieldCheck className="h-4 w-4 text-[#dc2626] mb-0.5" />
             <span>SSL 256</span>
           </div>
         </nav>
 
         {/* B) FLOATING HERO CARD */}
-        <div className="w-full md:w-80 relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-[#dc2626]/30 p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800/80">
-          <div aria-hidden className="absolute -top-24 -left-24 w-64 h-64 bg-[#dc2626]/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="w-full md:w-80 relative overflow-hidden bg-slate-950/90 p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800">
+          <div aria-hidden className="absolute -top-24 -left-24 w-64 h-64 bg-[#dc2626]/20 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#dc2626]/20 border border-[#dc2626]/40 text-[#dc2626] text-xs font-bold">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>ATHLETIC CRIMSON • HYBRID</span>
-            </div>
-
             {view === "signin" ? (
               <div className="space-y-3 animate-in fade-in">
                 <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">
                   Montanha Hybrid Training
                 </h2>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Alta Performance, Prescrição & Periodização Avançada de Treino Esportivo.
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Alta performance, prescrição e periodização avançada de treino esportivo.
                 </p>
               </div>
             ) : (
@@ -379,7 +374,7 @@ function AuthPage() {
                 <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">
                   Evolua a Performance dos seus Atletas
                 </h2>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-sm text-slate-300 leading-relaxed">
                   Controle cargas, prescreva planilhas e acompanhe a evolução com máxima precisão.
                 </p>
               </div>
@@ -387,32 +382,24 @@ function AuthPage() {
           </div>
 
           <div className="relative z-10 pt-6 border-t border-slate-800/80 space-y-3">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <CheckCircle2 className="h-4 w-4 text-[#dc2626]" />
-              <span>PIN 10 Dígitos Padronizado</span>
+            <div className="flex items-center gap-2.5 text-xs text-slate-300 font-medium">
+              <CheckCircle2 className="h-4 w-4 text-[#dc2626] flex-shrink-0" />
+              <span>Autenticação rápida e segura por PIN</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <CheckCircle2 className="h-4 w-4 text-[#dc2626]" />
-              <span>Sincronização Multi-Tenant</span>
+            <div className="flex items-center gap-2.5 text-xs text-slate-300 font-medium">
+              <CheckCircle2 className="h-4 w-4 text-[#dc2626] flex-shrink-0" />
+              <span>Sincronização multi-tenant em nuvem</span>
             </div>
-            <a
-              href="#terms"
-              onClick={(e) => { e.preventDefault(); toast.info("Montanha Hybrid Training v2.4"); }}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#dc2626] hover:underline pt-2"
-            >
-              <span>Termos &amp; Diretrizes do Ecossistema</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </a>
           </div>
         </div>
 
         {/* C) FORM PANEL */}
-        <div className="flex-1 p-6 md:p-10 flex flex-col justify-between bg-slate-950/60">
+        <div className="flex-1 p-6 md:p-10 flex flex-col justify-between bg-slate-900">
           {showReset ? (
             <div className="space-y-6 my-auto">
               <div>
-                <h3 className="text-xl font-bold text-white">Recuperar Senha</h3>
-                <p className="text-xs text-slate-400 mt-1">Informe seu e-mail cadastrado para receber as instruções.</p>
+                <h3 className="text-2xl font-bold text-white tracking-tight">Recuperar Senha</h3>
+                <p className="text-sm text-slate-400 mt-1">Informe seu e-mail cadastrado para receber as instruções.</p>
               </div>
 
               {resetSent ? (
@@ -421,19 +408,19 @@ function AuthPage() {
                     <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                     <span>Instruções enviadas!</span>
                   </div>
-                  <p className="text-xs text-slate-300">Confira a caixa de entrada e a pasta de spam do e-mail <b>{email}</b>.</p>
+                  <p className="text-xs text-slate-300">Confira a caixa de entrada do e-mail <b>{email}</b>.</p>
                   <button
                     type="button"
                     onClick={() => { setShowReset(false); setResetSent(false); }}
                     className="text-xs font-bold text-[#dc2626] hover:underline block pt-2"
                   >
-                    ← Voltar ao login
+                    ← Voltar para o login
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleReset} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label htmlFor="reset-email-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">E-mail</label>
+                    <label htmlFor="reset-email-hybrid" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">E-mail</label>
                     <div className="relative">
                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                       <input
@@ -443,8 +430,8 @@ function AuthPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="seu.email@exemplo.com"
-                        style={{ fontSize: "16px" }}
-                        className="w-full h-11 pl-10 pr-4 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
+                        style={{ fontSize: "16px", color: "#ffffff" }}
+                        className="w-full h-11 pl-10 pr-4 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
                       />
                     </div>
                   </div>
@@ -452,7 +439,7 @@ function AuthPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-11 rounded-xl bg-gradient-to-r from-[#dc2626] to-[#ef4444] text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#dc2626]/30 hover:opacity-95 transition-all flex items-center justify-center gap-2 min-h-[44px]"
+                    className="w-full h-12 rounded-xl bg-[#dc2626] hover:bg-[#b91c1c] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 min-h-[44px]"
                   >
                     {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                     <span>Enviar Link de Reset</span>
@@ -470,52 +457,21 @@ function AuthPage() {
             </div>
           ) : (
             <div className="space-y-6 my-auto">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-white">
-                    {view === "signin" ? "Acessar Plataforma" : "Criar sua Conta"}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {view === "signin"
-                      ? "Informe suas credenciais ou PIN de 10 dígitos."
-                      : "Preencha seus dados para cadastro como treinador."}
-                  </p>
-                </div>
-
-                <div className="bg-slate-900 p-1 rounded-xl border border-slate-800 flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setAuthMethod("pin")}
-                    aria-label="Autenticação por PIN de 10 dígitos"
-                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      authMethod === "pin"
-                        ? "bg-[#dc2626] text-white shadow-md shadow-[#dc2626]/30"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
-                  >
-                    <Smartphone className="h-3.5 w-3.5" />
-                    <span>PIN 10 Dígitos</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAuthMethod("email")}
-                    aria-label="Autenticação por Senha"
-                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      authMethod === "email"
-                        ? "bg-[#dc2626] text-white shadow-md shadow-[#dc2626]/30"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
-                  >
-                    <KeyRound className="h-3.5 w-3.5" />
-                    <span>Senha</span>
-                  </button>
-                </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white tracking-tight">
+                  {view === "signin" ? "Acessar Plataforma" : "Criar sua Conta"}
+                </h3>
+                <p className="text-sm text-slate-400 mt-1">
+                  {view === "signin"
+                    ? "Informe suas credenciais ou PIN de acesso."
+                    : "Preencha seus dados para cadastro como treinador."}
+                </p>
               </div>
 
               <form onSubmit={view === "signin" ? handleSignIn : handleSignUp} className="space-y-4">
                 {view === "signup" && (
                   <div className="space-y-1.5">
-                    <label htmlFor="su-nome-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">Nome Completo</label>
+                    <label htmlFor="su-nome-hybrid" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Nome Completo</label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                       <input
@@ -525,15 +481,15 @@ function AuthPage() {
                         value={nome}
                         onChange={(e) => setNome(e.target.value)}
                         placeholder="Ex: Coach Montanha"
-                        style={{ fontSize: "16px" }}
-                        className="w-full h-11 pl-10 pr-4 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
+                        style={{ fontSize: "16px", color: "#ffffff" }}
+                        className="w-full h-11 pl-10 pr-4 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
                       />
                     </div>
                   </div>
                 )}
 
                 <div className="space-y-1.5">
-                  <label htmlFor="si-email-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">E-mail</label>
+                  <label htmlFor="si-email-hybrid" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">E-mail</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <input
@@ -543,68 +499,40 @@ function AuthPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu.email@exemplo.com"
-                      style={{ fontSize: "16px" }}
-                      className="w-full h-11 pl-10 pr-4 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
+                      style={{ fontSize: "16px", color: "#ffffff" }}
+                      className="w-full h-11 pl-10 pr-4 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
                     />
                   </div>
                 </div>
 
-                {authMethod === "pin" ? (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="pin-input-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">PIN de Acesso</label>
-                    </div>
-                    <div className="relative">
-                      <Smartphone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                      <input
-                        id="pin-input-hybrid"
-                        type="password"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength={12}
-                        required
-                        value={pin}
-                        onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 12))}
-                        placeholder="••••••••"
-                        style={{ fontSize: "16px" }}
-                        className="w-full h-11 pl-10 pr-12 bg-slate-900 border border-slate-800 rounded-xl text-white tracking-widest font-mono placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPass(!showPass)}
-                        aria-label="Alternar visibilidade do PIN"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white"
-                      >
-                        {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="pin-input-hybrid" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                      {view === "signup" ? "PIN ou Senha (no mínimo 6 dígitos)" : "PIN ou Senha de Acesso"}
+                    </label>
                   </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    <label htmlFor="password-input-hybrid" className="text-xs font-bold text-slate-300 uppercase tracking-wider">Senha</label>
-                    <div className="relative">
-                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                      <input
-                        id="password-input-hybrid"
-                        type={showPass ? "text" : "password"}
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        style={{ fontSize: "16px" }}
-                        className="w-full h-11 pl-10 pr-12 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPass(!showPass)}
-                        aria-label="Alternar visibilidade da senha"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white"
-                      >
-                        {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <input
+                      id="pin-input-hybrid"
+                      type={showPass ? "text" : "password"}
+                      required
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value)}
+                      placeholder="••••••••"
+                      style={{ fontSize: "16px", color: "#ffffff" }}
+                      className="w-full h-11 pl-10 pr-12 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      aria-label="Alternar visibilidade do PIN"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white"
+                    >
+                      {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
-                )}
+                </div>
 
                 {view === "signin" && (
                   <div className="flex items-center justify-end pt-1">
@@ -622,14 +550,14 @@ function AuthPage() {
                   type="submit"
                   disabled={loading}
                   aria-label={view === "signin" ? "Entrar no Hybrid Training" : "Criar conta de treinador"}
-                  className="w-full h-11 rounded-xl bg-gradient-to-r from-[#dc2626] to-[#ef4444] text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#dc2626]/30 hover:opacity-95 transition-all flex items-center justify-center gap-2 min-h-[44px]"
+                  className="w-full h-12 rounded-xl bg-[#dc2626] hover:bg-[#b91c1c] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   <span>{view === "signin" ? "Entrar no Hybrid Training" : "Criar Conta de Treinador"}</span>
                 </button>
               </form>
 
-              <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800/60">
+              <div className="text-center text-xs text-slate-400 pt-3 border-t border-slate-800/80">
                 {view === "signin" ? (
                   <span>
                     Ainda não tem conta?{" "}
@@ -658,7 +586,8 @@ function AuthPage() {
           )}
         </div>
       </div>
-
+    </div>
+  );
       {/* Ecosystem Drawer Toggle */}
       <div className="mt-4 text-center">
         <button
