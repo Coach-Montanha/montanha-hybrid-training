@@ -17,7 +17,19 @@ export const Route = createFileRoute("/")({
       if (coach) {
         throw redirect({ to: "/app" });
       }
-      throw redirect({ to: "/aluno" });
+
+      // Se o usuário está expressamente cadastrado como aluno de um coach
+      const { data: student } = await supabase
+        .from("students")
+        .select("id")
+        .eq("auth_user_id", u.user.id)
+        .maybeSingle();
+      if (student) {
+        throw redirect({ to: "/aluno" });
+      }
+
+      // Padrão da plataforma: acesso ao app de treinamento / dashboard
+      throw redirect({ to: "/app" });
     }
     throw redirect({ to: "/auth", search: search.modo ? { modo: search.modo } : undefined });
   },

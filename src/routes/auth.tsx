@@ -155,8 +155,18 @@ function AuthPage() {
       .select("id")
       .eq("auth_user_id", u.user.id)
       .maybeSingle();
-    if (coach) navigate({ to: "/app" });
-    else navigate({ to: "/aluno" });
+    if (coach) return navigate({ to: "/app" });
+
+    // Verifica se possui cadastro explícito como aluno
+    const { data: student } = await supabase
+      .from("students")
+      .select("id")
+      .eq("auth_user_id", u.user.id)
+      .maybeSingle();
+    if (student) return navigate({ to: "/aluno" });
+
+    // Padrão: direciona para o painel principal do treinador
+    return navigate({ to: "/app" });
   }
 
   async function handleSignIn(e: React.FormEvent) {
