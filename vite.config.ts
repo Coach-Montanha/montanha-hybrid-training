@@ -14,6 +14,7 @@ export default defineConfig({
     },
   },
   vite: {
+    envPrefix: ["VITE_", "GEMINI_", "LOVABLE_", "GROQ_", "OPENROUTER_", "SUPABASE_"],
     build: {
       // Vite 8/Rolldown can drop declarations from large, highly re-exported
       // dependency graphs, producing a blank screen only in production.

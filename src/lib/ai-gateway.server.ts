@@ -265,6 +265,29 @@ async function callLovableGateway<T = any>(apiKey: string, args: CallAiJsonArgs)
   }
 }
 
+function getAiKey(): { geminiKey?: string; lovableKey?: string } {
+  let geminiKey: string | undefined;
+  if (typeof process !== "undefined" && process.env) {
+    geminiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  }
+  if (!geminiKey && typeof import.meta !== "undefined" && (import.meta as any).env) {
+    geminiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || (import.meta as any).env.GEMINI_API_KEY;
+  }
+
+  let lovableKey: string | undefined;
+  if (typeof process !== "undefined" && process.env) {
+    lovableKey = process.env.LOVABLE_API_KEY || process.env.VITE_LOVABLE_API_KEY;
+  }
+  if (!lovableKey && typeof import.meta !== "undefined" && (import.meta as any).env) {
+    lovableKey = (import.meta as any).env.VITE_LOVABLE_API_KEY || (import.meta as any).env.LOVABLE_API_KEY;
+  }
+
+  return {
+    geminiKey: geminiKey?.trim(),
+    lovableKey: lovableKey?.trim(),
+  };
+}
+
 /**
  * Chamada única de JSON estruturado ao ecossistema de IA.
  * Tenta automaticamente:
@@ -273,8 +296,7 @@ async function callLovableGateway<T = any>(apiKey: string, args: CallAiJsonArgs)
  *  3. Ecosystem Fallback Router (Groq, Cerebras, OpenRouter, SambaNova)
  */
 export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<CallAiJsonResult<T>> {
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
-  const lovableKey = process.env.LOVABLE_API_KEY;
+  const { geminiKey, lovableKey } = getAiKey();
 
   const promptChars = args.prompt.length + (args.system?.length ?? 0);
   if (promptChars > MAX_PROMPT_CHARS) {
@@ -287,9 +309,9 @@ export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<
   let lastError: any = null;
 
   // 1. Prioriza Gemini direto quando GEMINI_API_KEY está configurada (ex: produção Vercel)
-  if (geminiKey && geminiKey.trim().length > 0) {
+  if (geminiKey && geminiKey.length > 0) {
     try {
-      return await callGeminiDirect<T>(geminiKey.trim(), args);
+      return await callGeminiDirect<T>(geminiKey, args);
     } catch (err) {
       console.warn("[ai-gateway] Gemini direto falhou, tentando fallback:", err);
       lastError = err;
@@ -297,9 +319,9 @@ export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<
   }
 
   // 2. Tenta Lovable Gateway se configurado
-  if (lovableKey && lovableKey.trim().length > 0) {
+  if (lovableKey && lovableKey.length > 0) {
     try {
-      return await callLovableGateway<T>(lovableKey.trim(), args);
+      return await callLovableGateway<T>(lovableKey, args);
     } catch (err) {
       console.warn("[ai-gateway] Lovable Gateway falhou, tentando fallback:", err);
       lastError = err;
@@ -334,7 +356,7 @@ export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<
   if (!geminiKey && !lovableKey) {
     throw new AiGatewayError(
       "AI_NOT_CONFIGURED",
-      "Serviço de IA indisponível no momento. Configure a variável GEMINI_API_KEY no painel da Vercel.",
+      "Chave da IA não configurada no servidor (GEMINI_API_KEY ou LOVABLE_API_KEY). Adicione GEMINI_API_KEY no painel da Vercel.",
     );
   }
 
