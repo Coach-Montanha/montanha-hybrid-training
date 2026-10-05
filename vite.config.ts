@@ -12,6 +12,12 @@ export default defineConfig({
     externals: {
       inline: ["tslib"],
     },
+    // Impede que o Rollup/esbuild substitua process.env por {} no bundle server.
+    // Sem isso, `process.env.GEMINI_API_KEY` pode ser substituído por `undefined`
+    // no build, mesmo que a variável exista no runtime da Vercel.
+    replace: {
+      "process.env": "process.env",
+    },
   },
   vite: {
     envPrefix: ["VITE_", "GEMINI_", "LOVABLE_", "GROQ_", "OPENROUTER_", "SUPABASE_"],
