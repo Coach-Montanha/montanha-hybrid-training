@@ -718,12 +718,18 @@ export function PrescreverIaDialog({
     onError: (e: any) => {
       setProgresso([]);
       
-      let msg = "Não foi possível gerar a prescrição.";
-      const errorStr = String(e.message || e);
+      const errorStr = String(e?.message || e || "");
+      let msg = errorStr.replace(/^(Error:\s*)+/i, "").trim();
 
       if (errorStr.includes("POOL_VAZIO")) {
         msg = "O pool de exercícios da biblioteca não atende aos filtros de equipamento/metodologia do molde.";
-      } else if (errorStr.includes("AI_GATEWAY_ERROR")) {
+      } else if (errorStr.includes("AI_NOT_CONFIGURED")) {
+        msg = "Chave da IA não configurada no servidor (GEMINI_API_KEY ou LOVABLE_API_KEY).";
+      } else if (errorStr.includes("AI_UNAUTHORIZED")) {
+        msg = "Acesso à IA não autorizado. Verifique as credenciais da API.";
+      } else if (errorStr.includes("AI_NO_CREDITS")) {
+        msg = "Créditos da IA esgotados no gateway.";
+      } else if (errorStr.includes("AI_GATEWAY_ERROR") || errorStr.includes("AI_UPSTREAM_ERROR")) {
         msg = "O serviço de IA está temporariamente indisponível. Tente novamente em alguns instantes.";
       } else if (errorStr.includes("AI_EMPTY_CONTENT") || errorStr.includes("AI_INVALID_JSON")) {
         msg = "A IA retornou uma resposta inválida. Tente gerar novamente.";
@@ -751,8 +757,12 @@ export function PrescreverIaDialog({
         }
         
         msg = "A aplicação precisa ser atualizada. Por favor, feche esta aba e abra novamente ou limpe o cache do navegador.";
-      } else if (errorStr.includes("400") || errorStr.includes("token")) {
+      } else if (errorStr.includes("400") || errorStr.includes("token") || errorStr.includes("AI_PAYLOAD_TOO_LARGE")) {
         msg = "Histórico muito longo. Tente reduzir o número de semanas ou o histórico analisado.";
+      }
+
+      if (!msg || msg === "undefined") {
+        msg = "Não foi possível gerar a prescrição.";
       }
 
       toast.error("Falha na Prescrição", {
@@ -794,9 +804,23 @@ export function PrescreverIaDialog({
       const weekMap = new Map<number, string>();
 
       const diasPrevia = (previa as AiPrescription).days;
-      for (const dia of diasPrevia) {
-        // Se a IA não mandou week_number, assume que tudo vai pra próxima semana
-        const weekOffset = dia.week_number || 1;
+      const hasMultiWeek = diasPrevia.some((d) => (d.week_number || 1) > 1);
+
+      // Se a IA gerou apenas semana-modelo (hasMultiWeek = false) mas o programa tem semanas > 1, expande
+      const itensParaSalvar: Array<{ dia: AiDay; weekOffset: number }> = [];
+      if (!hasMultiWeek && semanas > 1) {
+        for (let w = 1; w <= semanas; w++) {
+          for (const dia of diasPrevia) {
+            itensParaSalvar.push({ dia, weekOffset: w });
+          }
+        }
+      } else {
+        for (const dia of diasPrevia) {
+          itensParaSalvar.push({ dia, weekOffset: dia.week_number || 1 });
+        }
+      }
+
+      for (const { dia, weekOffset } of itensParaSalvar) {
         const targetWeekNum = ultimaSemanaReal + weekOffset;
 
         if (!weekMap.has(targetWeekNum)) {

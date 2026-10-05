@@ -92,12 +92,55 @@ function classify(status: number, body: string): AiGatewayError {
   return new AiGatewayError("AI_UPSTREAM_ERROR", `Falha temporária da IA (erro ${status}).`, status, sanitize(body));
 }
 
-function stripFences(raw: string): string {
+export function stripFences(raw: string): string {
   return raw
     .trim()
     .replace(/^```(?:json)?/i, "")
     .replace(/```$/, "")
     .trim();
+}
+
+/** Extração defensiva de JSON que lida com markdown fences, preâmbulos e trailing commas */
+export function parseJsonDefensive<T = any>(raw: string): T {
+  const trimmed = raw.trim();
+  // 1. Tenta parse direto
+  try {
+    return JSON.parse(trimmed);
+  } catch {}
+
+  // 2. Tenta extrair bloco de markdown ```json ... ```
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenceMatch && fenceMatch[1]) {
+    try {
+      return JSON.parse(fenceMatch[1].trim());
+    } catch {}
+  }
+
+  // 3. Tenta extrair o maior bloco de chaves { ... }
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    const candidate = trimmed.slice(firstBrace, lastBrace + 1);
+    try {
+      return JSON.parse(candidate);
+    } catch {}
+  }
+
+  // 4. Tenta extrair o maior bloco de colchetes [ ... ]
+  const firstBracket = trimmed.indexOf("[");
+  const lastBracket = trimmed.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket > firstBracket) {
+    const candidate = trimmed.slice(firstBracket, lastBracket + 1);
+    try {
+      return JSON.parse(candidate);
+    } catch {}
+  }
+
+  try {
+    return JSON.parse(stripFences(trimmed));
+  } catch {
+    throw new AiGatewayError("AI_INVALID_JSON", "A IA retornou um JSON inválido.", 200, sanitize(raw));
+  }
 }
 
 export type CallAiJsonArgs = {
@@ -116,25 +159,52 @@ export type CallAiJsonResult<T = any> = {
   requestId: string | null;
 };
 
-/**
- * Chamada única de JSON estruturado ao gateway.
- * Faz no máximo UMA repetição sem `response_format` quando o 400 for
- * especificamente causado por esse campo.
- */
-export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<CallAiJsonResult<T>> {
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) {
-    throw new AiGatewayError("AI_NOT_CONFIGURED", "Serviço de IA indisponível no momento.");
+/** Chamada direta à API oficial do Google Gemini com responseMimeType: "application/json" */
+async function callGeminiDirect<T = any>(apiKey: string, args: CallAiJsonArgs): Promise<CallAiJsonResult<T>> {
+  const modelName = (process.env.GEMINI_MODEL || "gemini-2.5-flash").replace(/^google\//, "");
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+  const body: any = {
+    contents: [{ role: "user", parts: [{ text: args.prompt }] }],
+    generationConfig: {
+      temperature: args.temperature ?? 0.7,
+      responseMimeType: "application/json",
+    },
+  };
+
+  if (args.system) {
+    body.systemInstruction = { parts: [{ text: args.system }] };
   }
 
-  const promptChars = args.prompt.length + (args.system?.length ?? 0);
-  if (promptChars > MAX_PROMPT_CHARS) {
-    throw new AiGatewayError(
-      "AI_PAYLOAD_TOO_LARGE",
-      `As instruções/histórico excedem o limite (${promptChars} caracteres, máximo ${MAX_PROMPT_CHARS}).`,
-    );
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw classify(res.status, errText);
   }
 
+  const data: any = await res.json();
+  const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!raw || typeof raw !== "string" || raw.trim().length === 0) {
+    throw new AiGatewayError("AI_EMPTY_CONTENT", "A IA não retornou conteúdo.", 200);
+  }
+
+  const json = parseJsonDefensive<T>(raw);
+  return {
+    json,
+    raw,
+    model: `gemini/${modelName}`,
+    finishReason: data?.candidates?.[0]?.finishReason ?? "STOP",
+    requestId: null,
+  };
+}
+
+/** Chamada ao Lovable AI Gateway */
+async function callLovableGateway<T = any>(apiKey: string, args: CallAiJsonArgs): Promise<CallAiJsonResult<T>> {
   const model = resolveAiModel();
 
   const attempt = async (useResponseFormat: boolean) => {
@@ -167,7 +237,6 @@ export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<
         status: res.status,
         code: err.code,
         requestId,
-        promptChars,
         detail: err.detail,
       });
       throw err;
@@ -177,25 +246,11 @@ export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<
     const conteudo = payload?.choices?.[0]?.message?.content;
     const finishReason = payload?.choices?.[0]?.finish_reason ?? null;
 
-    console.info("[ai-gateway] ok", {
-      scope: args.scope,
-      model,
-      requestId,
-      finishReason,
-      responseChars: typeof conteudo === "string" ? conteudo.length : 0,
-    });
-
     if (typeof conteudo !== "string" || conteudo.trim().length === 0) {
       throw new AiGatewayError("AI_EMPTY_CONTENT", "A IA não retornou conteúdo.", 200);
     }
 
-    let json: T;
-    try {
-      json = JSON.parse(stripFences(conteudo)) as T;
-    } catch {
-      throw new AiGatewayError("AI_INVALID_JSON", "A IA retornou um JSON inválido.", 200, sanitize(conteudo));
-    }
-
+    const json = parseJsonDefensive<T>(conteudo);
     return { json, raw: conteudo, model, finishReason, requestId } as CallAiJsonResult<T>;
   };
 
@@ -208,4 +263,83 @@ export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<
     }
     throw err;
   }
+}
+
+/**
+ * Chamada única de JSON estruturado ao ecossistema de IA.
+ * Tenta automaticamente:
+ *  1. Google Gemini API direto (GEMINI_API_KEY ou VITE_GEMINI_API_KEY)
+ *  2. Lovable AI Gateway (LOVABLE_API_KEY)
+ *  3. Ecosystem Fallback Router (Groq, Cerebras, OpenRouter, SambaNova)
+ */
+export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<CallAiJsonResult<T>> {
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  const lovableKey = process.env.LOVABLE_API_KEY;
+
+  const promptChars = args.prompt.length + (args.system?.length ?? 0);
+  if (promptChars > MAX_PROMPT_CHARS) {
+    throw new AiGatewayError(
+      "AI_PAYLOAD_TOO_LARGE",
+      `As instruções/histórico excedem o limite (${promptChars} caracteres, máximo ${MAX_PROMPT_CHARS}).`,
+    );
+  }
+
+  let lastError: any = null;
+
+  // 1. Prioriza Gemini direto quando GEMINI_API_KEY está configurada (ex: produção Vercel)
+  if (geminiKey && geminiKey.trim().length > 0) {
+    try {
+      return await callGeminiDirect<T>(geminiKey.trim(), args);
+    } catch (err) {
+      console.warn("[ai-gateway] Gemini direto falhou, tentando fallback:", err);
+      lastError = err;
+    }
+  }
+
+  // 2. Tenta Lovable Gateway se configurado
+  if (lovableKey && lovableKey.trim().length > 0) {
+    try {
+      return await callLovableGateway<T>(lovableKey.trim(), args);
+    } catch (err) {
+      console.warn("[ai-gateway] Lovable Gateway falhou, tentando fallback:", err);
+      lastError = err;
+    }
+  }
+
+  // 3. Fallback: Ecosystem LLM Router (Groq, Cerebras, OpenRouter, SambaNova)
+  try {
+    const { generateEcosystemCompletion } = await import("@/lib/ecosystem-llm-router");
+    const ecoRes = await generateEcosystemCompletion({
+      prompt: args.prompt,
+      systemInstruction: args.system,
+      temperature: args.temperature ?? 0.7,
+    });
+    const json = parseJsonDefensive<T>(ecoRes.text);
+    return {
+      json,
+      raw: ecoRes.text,
+      model: `${ecoRes.providerUsed}/${ecoRes.modelUsed}`,
+      finishReason: "STOP",
+      requestId: null,
+    };
+  } catch (ecoErr: any) {
+    console.warn("[ai-gateway] Ecosystem router fallback falhou:", ecoErr);
+    if (!lastError) lastError = ecoErr;
+  }
+
+  if (lastError instanceof AiGatewayError) {
+    throw lastError;
+  }
+
+  if (!geminiKey && !lovableKey) {
+    throw new AiGatewayError(
+      "AI_NOT_CONFIGURED",
+      "Serviço de IA indisponível no momento. Configure a variável GEMINI_API_KEY no painel da Vercel.",
+    );
+  }
+
+  throw new AiGatewayError(
+    "AI_UPSTREAM_ERROR",
+    `Falha ao comunicar com os provedores de IA: ${lastError?.message || lastError}`,
+  );
 }

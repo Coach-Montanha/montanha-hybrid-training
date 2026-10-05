@@ -161,39 +161,86 @@ function tipoDeGrupo(v: unknown, grupo: string): AiExercise["group_type"] {
 export function normalizarPrescricao(bruto: string): AiPrescription {
   let json: any;
   try {
-    const limpo = bruto
-      .trim()
-      .replace(/^```(?:json)?/i, "")
-      .replace(/```$/, "")
-      .trim();
+    const limpo = bruto.trim();
+    // 1. Tenta parse direto
+    try {
       json = JSON.parse(limpo);
-    } catch (e: any) {
-      console.error("Erro ao fazer parse do JSON da IA:", e, "\nConteúdo bruto:", bruto);
-      throw new Error("A IA respondeu em um formato inesperado. Tente novamente.");
+    } catch {
+      // 2. Extrai markdown fence ```json ... ```
+      const match = limpo.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (match && match[1]) {
+        json = JSON.parse(match[1].trim());
+      } else {
+        // 3. Extrai primeiro { até último }
+        const start = limpo.indexOf("{");
+        const end = limpo.lastIndexOf("}");
+        if (start !== -1 && end > start) {
+          json = JSON.parse(limpo.slice(start, end + 1));
+        } else {
+          throw new Error("Nenhum bloco JSON encontrado");
+        }
+      }
     }
+  } catch (e: any) {
+    console.error("Erro ao fazer parse do JSON da IA:", e, "\nConteúdo bruto:", bruto);
+    throw new Error("A IA respondeu em um formato inesperado. Tente novamente.");
+  }
 
-  const daysRaw = Array.isArray(json?.days) ? json.days : [];
+  let daysRaw: any[] = [];
+  if (Array.isArray(json?.days)) {
+    daysRaw = json.days;
+  } else if (Array.isArray(json?.dias)) {
+    daysRaw = json.dias;
+  } else if (Array.isArray(json?.sessoes)) {
+    daysRaw = json.sessoes;
+  } else if (Array.isArray(json?.sessions)) {
+    daysRaw = json.sessions;
+  } else if (Array.isArray(json?.treinos)) {
+    daysRaw = json.treinos;
+  } else if (Array.isArray(json?.weeks) || Array.isArray(json?.semanas)) {
+    const weeksList = json.weeks || json.semanas;
+    daysRaw = weeksList.flatMap((w: any, wIdx: number) => {
+      const wNum = typeof w?.week_number === "number" ? w.week_number : (typeof w?.numero_semana === "number" ? w.numero_semana : wIdx + 1);
+      const wDays = Array.isArray(w?.days) ? w.days : (Array.isArray(w?.dias) ? w.dias : (Array.isArray(w?.sessoes) ? w.sessoes : []));
+      return wDays.map((d: any) => ({ ...d, week_number: d?.week_number ?? wNum }));
+    });
+  } else if (Array.isArray(json)) {
+    daysRaw = json;
+  }
+
   const days: AiDay[] = daysRaw.map((d: any, i: number) => {
-    const exRaw = Array.isArray(d?.exercises) ? d.exercises : [];
+    const exRaw = Array.isArray(d?.exercises)
+      ? d.exercises
+      : Array.isArray(d?.exercicios)
+        ? d.exercicios
+        : Array.isArray(d?.movements)
+          ? d.movements
+          : [];
+
     return {
-      name: texto(d?.name, `Treino ${i + 1}`),
-      day_label: texto(d?.day_label),
-      week_number: typeof d?.week_number === "number" ? d.week_number : undefined,
-      description: texto(d?.description),
+      name: texto(d?.name || d?.nome || d?.titulo, `Treino ${i + 1}`),
+      day_label: texto(d?.day_label || d?.rotulo_dia || d?.label),
+      week_number: typeof d?.week_number === "number" ? d.week_number : (typeof d?.semana === "number" ? d.semana : undefined),
+      description: texto(d?.description || d?.descricao || d?.foco),
       exercises: exRaw
         .map((e: any) => {
-          const grupo = texto(e?.group).toUpperCase().slice(0, 4);
+          const grupo = texto(e?.group || e?.grupo).toUpperCase().slice(0, 4);
+          const restVal = typeof e?.rest_seconds === "number" && Number.isFinite(e.rest_seconds)
+            ? Math.max(0, Math.round(e.rest_seconds))
+            : typeof e?.descanso_segundos === "number"
+              ? Math.max(0, Math.round(e.descanso_segundos))
+              : typeof e?.descanso === "number"
+                ? Math.max(0, Math.round(e.descanso))
+                : null;
+
           return {
-            name: texto(e?.name),
-            sets_reps: texto(e?.sets_reps),
-            load: texto(e?.load),
-            rest_seconds:
-              typeof e?.rest_seconds === "number" && Number.isFinite(e.rest_seconds)
-                ? Math.max(0, Math.round(e.rest_seconds))
-                : null,
-            observations: texto(e?.observations),
+            name: texto(e?.name || e?.nome || e?.exercise || e?.exercicio),
+            sets_reps: texto(e?.sets_reps || e?.series_reps || e?.series || e?.reps),
+            load: texto(e?.load || e?.carga || e?.peso),
+            rest_seconds: restVal,
+            observations: texto(e?.observations || e?.observacoes || e?.obs),
             group: grupo,
-            group_type: tipoDeGrupo(e?.group_type, grupo),
+            group_type: tipoDeGrupo(e?.group_type || e?.tipo_grupo, grupo),
           };
         })
         .filter((e: AiExercise) => e.name.length > 0),
@@ -204,7 +251,7 @@ export function normalizarPrescricao(bruto: string): AiPrescription {
     throw new Error("A IA não retornou nenhum dia de treino. Refine as instruções.");
   }
 
-  return { days, notes: texto(json?.notes) };
+  return { days, notes: texto(json?.notes || json?.notas || json?.relatorio || json?.observacoes) };
 }
 
 export function mensagemDeErroGateway(status: number): string {

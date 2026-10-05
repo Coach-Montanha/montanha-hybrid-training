@@ -365,19 +365,18 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
         `Exercícios anteriores: ${ctx.continuation.recentSessions.flatMap(s => s.exerciseNames).slice(-10).join(", ")}`
       : null;
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("Serviço de IA indisponível no momento");
+    const override = data.escolaOverride && data.escolaOverride !== "auto" ? data.escolaOverride : null;
 
     const kb = data.kb ?? null;
     const linha: Exclude<EscolaMetodologica, "auto"> | null = kb
-      ? (data.escolaOverride as any) || (kb.escolaMetodologica === "auto"
+      ? (override as any) || (kb.escolaMetodologica === "auto"
         ? escolherEscola(kb.nivelAtleta, kb.disciplina)
         : kb.escolaMetodologica)
-      : (metodologiaEfetiva === "kettlebell_sport" ? (data.escolaOverride as any) || "gomonov" : null);
+      : (metodologiaEfetiva === "kettlebell_sport" ? (override as any) || "gomonov" : null);
 
     const wl = data.wl ?? null;
     const linhaWl: Exclude<EscolaWeightlifting, "auto"> | null = wl
-      ? (data.escolaOverride as any) || (wl.escolaMetodologica === "auto"
+      ? (override as any) || (wl.escolaMetodologica === "auto"
         ? escolherEscolaWl({
             nivel: wl.nivelAtleta,
             pontoFraco: wl.pontoFracoIdentificado,
@@ -386,11 +385,11 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             suporteTotal: wl.suporteTotalDeclarado,
           })
         : wl.escolaMetodologica)
-      : (metodologiaEfetiva === "levantamento_peso" ? (data.escolaOverride as any) || "takano" : null);
+      : (metodologiaEfetiva === "levantamento_peso" ? (override as any) || "takano" : null);
 
     const tf = data.tf ?? null;
     const linhaTf: Exclude<EscolaFuncional, "auto"> | null = tf
-      ? (data.escolaOverride as any) || (tf.escolaMetodologica === "auto"
+      ? (override as any) || (tf.escolaMetodologica === "auto"
         ? escolherEscolaFuncional({
             lesoes: tf.lesoes as any[],
             objetivo: tf.objetivo,
@@ -398,11 +397,11 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             sedentarismoProlongado: tf.sedentarismoProlongado,
           })
         : tf.escolaMetodologica)
-      : (metodologiaEfetiva === "treinamento_funcional" ? (data.escolaOverride as any) || "exos" : null);
+      : (metodologiaEfetiva === "treinamento_funcional" ? (override as any) || "boyle" : null);
 
     const co = data.co ?? null;
     const linhaCo: Exclude<EscolaCorrida, "auto"> | null = co
-      ? (data.escolaOverride as any) || (co.escolaMetodologica === "auto"
+      ? (override as any) || (co.escolaMetodologica === "auto"
         ? escolherEscolaCorrida({
             lesoes: co.lesoes as any,
             nivel: co.nivelAtleta,
@@ -411,7 +410,7 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             preferenciaAltaFrequencia: co.preferenciaAltaFrequencia,
           })
         : co.escolaMetodologica)
-      : (metodologiaEfetiva === "corrida" ? (data.escolaOverride as any) || "daniels" : null);
+      : (metodologiaEfetiva === "corrida" ? (override as any) || "daniels" : null);
 
     const systemPrompt = isKbSport
       ? KB_SPORT_SYSTEM_PROMPT
@@ -423,9 +422,21 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             ? CO_SYSTEM_PROMPT
             : SYSTEM_PROMPT;
     const userPrompt =
-      isCo && co && linhaCo
+      isCo && linhaCo
         ? montarCorridaPrompt({
-            co: co as any,
+            co: (co ?? {
+              escolaMetodologica: linhaCo,
+              nivelAtleta: "intermediario",
+              distanciaAlvo: "corrida_rua",
+              volumeSemanalKm: null,
+              frequenciaSemanalAtual: null,
+              marcaRecenteDistancia: null,
+              marcaRecenteTempo: null,
+              dataProvaAlvo: null,
+              terreno: null,
+              preferenciaAltaFrequencia: false,
+              lesoes: [],
+            }) as any,
             linha: linhaCo,
             semanas: ctx.duracao_semanas,
             diasPorSemana: ctx.dias_por_semana,
@@ -434,9 +445,16 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             instrucoes: instrucoesCompletas,
             resumoAnterior: resumoAnterior, // Adicionado histórico
           })
-        : isTf && tf && linhaTf
+        : isTf && linhaTf
         ? montarFuncionalPrompt({
-            tf: tf as any,
+            tf: (tf ?? {
+              escolaMetodologica: linhaTf,
+              nivelAtleta: "intermediario",
+              objetivo: "condicionamento_geral",
+              equipamento: "kettlebell_halteres",
+              sedentarismoProlongado: false,
+              lesoes: [],
+            }) as any,
             linha: linhaTf,
             semanas: ctx.duracao_semanas,
             diasPorSemana: ctx.dias_por_semana,

@@ -199,19 +199,20 @@ export function montarFuncionalPrompt(args: {
     "",
     resumoAnterior ? `HISTÓRICO DA PROGRAMAÇÃO ATUAL:\n${resumoAnterior}\n` : null,
     "",
-    `Sua tarefa é planejar a CONTINUIDADE e PERIODIZAÇÃO EM BLOCO da programação.`,
-    `Analise o HISTÓRICO acima para projetar a sobrecarga progressiva e PERIODIZAÇÃO ONDULATÓRIA.`,
-    `OBRIGATÓRIO: Identifique corretamente o "week_number" (1, 2, 3...) para cada sessão gerada.`,
-    "",
-    `Gere um programa de ${semanas} semana(s), ${dias} sessão(ões)/semana, iniciando em ${
+    `Sua tarefa é planejar a CONTINUIDADE e PERIODIZAÇÃO EM BLOCO da programação de ${semanas} semana(s), ${dias} treino(s)/semana, iniciando em ${
       dataInicio ?? "data não informada"
     }, seguindo estritamente a filosofia ${ESCOLA_TF_LABEL[linha]} descrita acima.`,
-    `OBRIGATÓRIO: gere exatamente ${dias} sessão(ões) distinta(s), que formam a semana-modelo a ser repetida/progredida ao longo das ${semanas} semana(s).`,
+    `Analise o HISTÓRICO e INSTRUÇÕES para projetar a sobrecarga progressiva e PERIODIZAÇÃO ONDULATÓRIA.`,
+    "",
+    `DIRETRIZ DE ESTRUTURAÇÃO DE SESSÕES:`,
+    `- Gere ${dias} sessões distintas fundamentais (com 'week_number': 1) para a semana-modelo OU as sessões do bloco com 'week_number' (1, 2, 3...).`,
+    `- Cada sessão deve ter 4 a 8 exercícios funcionais coerentes com o objetivo, equipamento e limitações informadas.`,
+    `- Registre em 'notes' o relatório de periodização e diretrizes de progressão ao longo das ${semanas} semana(s).`,
     "",
     "INSTRUÇÕES DO TREINADOR:",
     args.instrucoes.trim().length > 0 ? args.instrucoes.trim() : "Sem instruções adicionais.",
     "",
-    "Responda APENAS em JSON válido no schema de programa.",
+    'Responda APENAS em JSON válido no schema: { "days": [ { "name": "...", "day_label": "...", "description": "...", "week_number": 1, "exercises": [ ... ] } ], "notes": "..." }',
   ]
     .filter(Boolean)
     .join("\n");
