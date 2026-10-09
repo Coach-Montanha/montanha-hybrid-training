@@ -182,9 +182,9 @@ function AuthPage() {
     }
 
     if (authMethod === "pin") {
-      if (!/^\d{6,}$/.test(cleanCredential)) {
+      if (!/^\d{10}$/.test(cleanCredential)) {
         setLoading(false);
-        return toast.error("O PIN de acesso deve conter no mínimo 6 dígitos numéricos.");
+        return toast.error("O PIN de acesso deve conter exatamente 10 dígitos numéricos.");
       }
     } else {
       if (!cleanCredential || cleanCredential.length < 6) {

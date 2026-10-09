@@ -34,3 +34,6 @@ dist-ssr
 *.sln
 *.sw?
 .env*
+
+# Spec Kit agent folder (may contain secrets)
+.agents/
