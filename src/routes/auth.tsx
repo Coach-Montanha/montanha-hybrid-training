@@ -169,12 +169,22 @@ function AuthPage() {
     return navigate({ to: "/app" });
   }
 
-  async function handleSignIn(e: React.FormEvent) {
+  async function handleSignIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanCredential = authMethod === "pin" ? pin.trim() : password.trim();
+    const form = e.currentTarget;
+    const domEmail = (form.elements.namedItem("email") as HTMLInputElement)?.value || "";
+    const domCredential = (form.elements.namedItem("password") as HTMLInputElement)?.value || "";
+
+    const effectiveEmail = email.trim() || domEmail.trim();
+    const effectiveCredential = (authMethod === "pin" ? pin.trim() : password.trim()) || domCredential.trim();
+
+    if (effectiveEmail && !email) setEmail(effectiveEmail);
+    if (effectiveCredential && !pin) setPin(effectiveCredential);
+
+    const cleanEmail = effectiveEmail.toLowerCase();
+    const cleanCredential = effectiveCredential;
 
     if (!cleanEmail) {
       setLoading(false);
@@ -504,10 +514,18 @@ function AuthPage() {
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <input
                       id="si-email-hybrid"
+                      name="email"
                       type="email"
+                      autoComplete="username email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      onAnimationStart={(e) => {
+                        if (e.animationName === "onAutoFillStart") {
+                          const val = (e.currentTarget as HTMLInputElement).value;
+                          if (val && !email) setEmail(val);
+                        }
+                      }}
                       placeholder="seu.email@exemplo.com"
                       style={{ fontSize: "16px", color: "#ffffff" }}
                       className="w-full h-11 pl-10 pr-4 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
@@ -525,10 +543,18 @@ function AuthPage() {
                     <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <input
                       id="pin-input-hybrid"
+                      name="password"
                       type={showPass ? "text" : "password"}
+                      autoComplete={view === "signup" ? "new-password" : "current-password"}
                       required
                       value={pin}
                       onChange={(e) => setPin(e.target.value)}
+                      onAnimationStart={(e) => {
+                        if (e.animationName === "onAutoFillStart") {
+                          const val = (e.currentTarget as HTMLInputElement).value;
+                          if (val && !pin) setPin(val);
+                        }
+                      }}
                       placeholder="••••••••"
                       style={{ fontSize: "16px", color: "#ffffff" }}
                       className="w-full h-11 pl-10 pr-12 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#dc2626] text-base md:text-sm"
