@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Wand2, Settings2, AlertTriangle, ListChecks, Sparkles, ArrowRight, ArrowLeft } from "lucide-react";
+import { Wand2, Settings2, AlertTriangle, ListChecks, Sparkles, ArrowRight, ArrowLeft, UploadCloud } from "lucide-react";
 import { Stepper, type StepItem } from "@/components/ui/stepper";
 import { Badge } from "@/components/ui/badge";
 import { getGeneratorPrefs } from "@/lib/generator-prefs.functions";
@@ -305,6 +305,52 @@ export function GerarPanel({ showHeader = true }: { showHeader?: boolean } = {})
           </Button>
         </div>
       )}
+
+      <div className="mb-5 rounded-xl border-2 border-primary/30 bg-primary/[0.06] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-foreground">Prescrição Direta com IA & Planilha</span>
+            <Badge variant="outline" className="text-[10px] uppercase font-mono border-primary/30 text-primary">
+              Novo
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Suba uma planilha de treino (.xlsx, .csv, .txt, foto) ou descreva diretamente as instruções para a IA reorganizar ou continuar.
+          </p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          onClick={async () => {
+            if (!coach) return toast.error("Perfil de treinador não encontrado");
+            try {
+              setLoading(true);
+              const { data: prog, error } = await supabase
+                .from("programs")
+                .insert({
+                  coach_id: coach.id,
+                  metodologia: "musculacao",
+                  titulo: titulo.trim() || `Prescrição IA - ${new Date().toLocaleDateString("pt-BR")}`,
+                  data_inicio: dataInicio,
+                  duracao_semanas: 4,
+                })
+                .select("id, titulo")
+                .single();
+              if (error || !prog) throw error;
+              setIaPrograma({ id: prog.id, titulo: prog.titulo ?? titulo, metodologia: "musculacao" } as any);
+            } catch (e: any) {
+              toast.error(e?.message || "Erro ao iniciar prescrição");
+            } finally {
+              setLoading(false);
+            }
+          }}
+          className="gap-2 shrink-0 font-semibold h-9 px-4 w-full sm:w-auto"
+        >
+          <UploadCloud className="h-4 w-4" />
+          Subir Planilha & Prescrever
+        </Button>
+      </div>
 
       <Card className="p-6">
         <div className="mb-6 pb-4 border-b">

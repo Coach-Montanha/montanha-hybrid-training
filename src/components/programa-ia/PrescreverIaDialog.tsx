@@ -1249,230 +1249,174 @@ export function PrescreverIaDialog({
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-4 rounded-xl border border-border/60 bg-muted/20 p-4 sm:grid-cols-2">
-            {(metodologia === "hibrido" || metodologia === "kettlebell_fitness") && moldesHistoricos.length > 0 && (
-              <div className="col-span-full space-y-2 border-b border-border/40 pb-4">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                  Recuperação de Estrutura (Molde)
-                </label>
-                <Select value={moldeSelecionado} onValueChange={setMoldeSelecionado} disabled={gerarMut.isPending}>
-                  <SelectTrigger className="h-9 bg-background border-primary/30">
-                    <SelectValue placeholder="Escolha qual estrutura repetir..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="auto">
-                      {escopoInicial?.hibrido?.sessaoTemplate?.length ? "Manter molde atual" : "Selecionar molde histórico..."}
-                    </SelectItem>
-                    {moldesHistoricos.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>
-                        {m.titulo} ({m.blocks.length} blocos)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[10px] text-muted-foreground italic">
-                  * A IA usará esta estrutura para prescrever novos exercícios.
-                </p>
-              </div>
-            )}
-
-            <div className="col-span-full space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                    Base Técnica (Motor)
-                  </label>
-                  <Select value={metodologia} onValueChange={setMetodologia} disabled={gerarMut.isPending}>
-                    <SelectTrigger className="h-9 border-primary/20 bg-background/50">
-                      <SelectValue placeholder="Selecione a modalidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="musculacao">Musculação</SelectItem>
-                      <SelectItem value="hibrido">Treinamento Híbrido</SelectItem>
-                      <SelectItem value="kettlebell_fitness">Kettlebell Fitness</SelectItem>
-                      <SelectItem value="kettlebell_sport">Kettlebell Sport</SelectItem>
-                      <SelectItem value="levantamento_peso">LPO</SelectItem>
-                      <SelectItem value="treinamento_funcional">Funcional</SelectItem>
-                      <SelectItem value="corrida">Corrida</SelectItem>
-                    </SelectContent>
-                  </Select>
+          {/* SEÇÃO DE UPLOAD DE PLANILHA / TREINO DO ALUNO (DESTAQUE MÁXIMO) */}
+          <div className="rounded-xl border-2 border-primary/40 bg-card/90 shadow-sm p-4 space-y-3.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+                  <FileSpreadsheet className="h-5 w-5" />
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                    Escola Metodológica
-                  </label>
-                  <Select value={escola} onValueChange={setEscola} disabled={gerarMut.isPending}>
-                    <SelectTrigger className="h-9 border-primary/20 bg-background/50">
-                      <SelectValue placeholder="Padrão do Sistema" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(ESCOLAS_DISPONIVEIS[metodologia] || [{ value: "auto", label: "Automático" }]).map((e) => (
-                        <SelectItem key={e.value} value={e.value}>
-                          {e.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div>
+                  <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    Subir Planilha / Treino do Aluno
+                    <Badge variant="outline" className="text-[10px] px-2 py-0 uppercase bg-primary/10 text-primary border-primary/30 font-medium">
+                      Recomendado
+                    </Badge>
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Suba Excel (.xlsx), CSV, TXT, PDF ou Foto/Print da ficha. A IA analisa tudo automaticamente.
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Semanas (Volume)
-                  </label>
-                  <div className="flex h-9 items-center justify-between rounded-md border bg-background px-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => setSemanas(Math.max(1, semanas - 1))}
-                      disabled={gerarMut.isPending || semanas <= 1}
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="text-sm font-medium tabular-nums">{semanas}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => setSemanas(Math.min(12, semanas + 1))}
-                      disabled={gerarMut.isPending || semanas >= 12}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Frequência (Dias/Sem)
-                  </label>
-                  <div className="flex h-9 items-center justify-between rounded-md border bg-background px-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => setDiasPorSemana(Math.max(1, diasPorSemana - 1))}
-                      disabled={gerarMut.isPending || diasPorSemana <= 1}
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="text-sm font-medium tabular-nums">{diasPorSemana}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => setDiasPorSemana(Math.min(7, diasPorSemana + 1))}
-                      disabled={gerarMut.isPending || diasPorSemana >= 7}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Histórico considerado (sessões)
-                </label>
-                <div className="flex h-9 items-center justify-between rounded-md border bg-background px-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setHistoricoSessoes(Math.max(0, historicoSessoes - 1))}
-                    disabled={gerarMut.isPending || historicoSessoes <= 0}
-                  >
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                  <span className="text-sm font-medium tabular-nums">
-                    {historicoSessoes === 0 ? "Sem histórico" : historicoSessoes}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setHistoricoSessoes(Math.min(12, historicoSessoes + 1))}
-                    disabled={gerarMut.isPending || historicoSessoes >= 12}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  Reduza se aparecer o aviso de histórico muito longo.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Bloqueio de repetição (Cooldown)
-                </label>
-                <div className="flex h-9 items-center justify-between rounded-md border bg-background px-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setCooldownSessoes(Math.max(0, cooldownSessoes - 1))}
-                    disabled={gerarMut.isPending || cooldownSessoes <= 0}
-                  >
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                  <span className="text-sm font-medium tabular-nums">
-                    {cooldownSessoes === 0 ? "Sem bloqueio" : `${cooldownSessoes} sessões`}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setCooldownSessoes(Math.min(10, cooldownSessoes + 1))}
-                    disabled={gerarMut.isPending || cooldownSessoes >= 10}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  Evita repetir exercícios usados nas últimas N sessões.
-                </p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  id="upload-planilha-input"
+                  className="hidden"
+                  accept=".txt,.csv,.xlsx,.xls,.pdf,image/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleFileUpload(f);
+                    e.target.value = "";
+                  }}
+                  disabled={gerarMut.isPending || isExtractingPlanilha}
+                />
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  disabled={gerarMut.isPending || isExtractingPlanilha}
+                  onClick={() => document.getElementById("upload-planilha-input")?.click()}
+                  className="h-9 gap-2 text-xs font-semibold px-4 shadow-sm w-full sm:w-auto"
+                >
+                  {isExtractingPlanilha ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Extraindo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="h-4 w-4" />
+                      <span>{planilhaArquivoNome ? "Trocar Arquivo" : "Subir Planilha / Foto"}</span>
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
+
+            {planilhaArquivoNome && (
+              <div className="space-y-2.5 pt-2 border-t border-border/60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <span className="truncate max-w-[220px] sm:max-w-[320px]">{planilhaArquivoNome}</span>
+                    <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
+                      {planilhaImagem ? "Multimodal / Imagem" : "Texto Extraído"}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowPlanilhaPreview(!showPlanilhaPreview)}
+                      className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      {showPlanilhaPreview ? "Ocultar" : "Ver / Editar Conteúdo"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setPlanilhaTexto("");
+                        setPlanilhaArquivoNome(null);
+                        setPlanilhaImagem(null);
+                        setShowPlanilhaPreview(false);
+                      }}
+                      className="h-7 px-2.5 text-xs text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1" />
+                      Remover
+                    </Button>
+                  </div>
+                </div>
+
+                {/* SELETOR DE MODO DE OPERAÇÃO DA PLANILHA */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setPlanilhaModo("ajustar")}
+                    className={`text-left p-3 rounded-lg border text-xs transition-all ${
+                      planilhaModo === "ajustar"
+                        ? "border-primary bg-primary/10 text-primary font-semibold shadow-xs ring-1 ring-primary/30"
+                        : "border-border/60 bg-muted/20 text-muted-foreground hover:border-border"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold">🔄 Reorganizar & Ajustar</span>
+                      {planilhaModo === "ajustar" && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                    </div>
+                    <p className="text-[11px] leading-relaxed font-normal text-muted-foreground">
+                      Reformule os treinos existentes corrigindo volume, exercícios, ordem e descansos.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPlanilhaModo("continuar")}
+                    className={`text-left p-3 rounded-lg border text-xs transition-all ${
+                      planilhaModo === "continuar"
+                        ? "border-primary bg-primary/10 text-primary font-semibold shadow-xs ring-1 ring-primary/30"
+                        : "border-border/60 bg-muted/20 text-muted-foreground hover:border-border"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold">📈 Continuar Periodização</span>
+                      {planilhaModo === "continuar" && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                    </div>
+                    <p className="text-[11px] leading-relaxed font-normal text-muted-foreground">
+                      Usa a planilha como histórico prévio e projeta as próximas semanas com sobrecarga progressiva.
+                    </p>
+                  </button>
+                </div>
+
+                {/* ÁREA EDITÁVEL DO CONTEÚDO EXTRAÍDO */}
+                {showPlanilhaPreview && (
+                  <div className="space-y-1.5 pt-2 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>Conteúdo da planilha extraído (editável):</span>
+                      <span className="tabular-nums">{planilhaTexto.length} caracteres</span>
+                    </div>
+                    <Textarea
+                      value={planilhaTexto}
+                      onChange={(e) => setPlanilhaTexto(e.target.value)}
+                      rows={6}
+                      disabled={gerarMut.isPending}
+                      className="font-mono text-xs leading-relaxed resize-y bg-slate-900 border-slate-800"
+                      placeholder="Cole ou edite os dados do treino aqui..."
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          <Collapsible>
-            <CollapsibleTrigger className="group flex w-full items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-left text-xs font-medium transition-colors duration-200 hover:bg-muted/40">
-              <Info className="h-3.5 w-3.5 text-primary" />
-              Como usar e limitações
-              <ChevronDown className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-3 px-3 pb-1 pt-3">
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Descreva: divisão dos dias (A/B/C…), frequência semanal, objetivo,
-                séries e repetições, descanso e equipamentos preferidos.
-              </p>
-              <ul className="space-y-1">
-                {LIMITACOES.map((l) => (
-                  <li
-                    key={l}
-                    className="flex gap-2 text-xs leading-relaxed text-muted-foreground"
-                  >
-                    <span aria-hidden className="text-primary">
-                      •
-                    </span>
-                    {l}
-                  </li>
-                ))}
-              </ul>
-            </CollapsibleContent>
-          </Collapsible>
-
+          {/* INSTRUÇÕES DO TREINADOR */}
           <div className="space-y-2">
-            <label
-              htmlFor="prompt-ia"
-              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-            >
-              Instruções
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="prompt-ia"
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Instruções & Orientações para a IA
+              </label>
+              <span className="text-[11px] tabular-nums text-muted-foreground">
+                {prompt.trim().length}/4000
+              </span>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {EXEMPLOS.map((ex) => (
                 <Button
@@ -1492,174 +1436,21 @@ export function PrescreverIaDialog({
               id="prompt-ia"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder={PLACEHOLDER}
-              rows={5}
+              placeholder={
+                planilhaArquivoNome
+                  ? "Explique para a IA o que você quer modificar, retirar, ajustar ou dar ênfase a partir da planilha subida..."
+                  : PLACEHOLDER
+              }
+              rows={4}
               maxLength={4000}
               disabled={gerarMut.isPending || salvarMut.isPending}
               className="resize-y text-sm leading-relaxed transition-colors duration-200"
             />
-            <div className="flex justify-end text-[11px] tabular-nums text-muted-foreground">
-              {prompt.trim().length}/4000
-            </div>
 
-            {/* SEÇÃO DE UPLOAD DE PLANILHA / TREINO PRÉVIO */}
-            <div className="rounded-xl border border-border/80 bg-slate-950/60 p-3.5 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                    <FileSpreadsheet className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                      Subir Planilha / Treino do Aluno
-                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 uppercase bg-primary/5 text-primary border-primary/20">
-                        Opcional
-                      </Badge>
-                    </h5>
-                    <p className="text-[11px] text-muted-foreground">
-                      Importe texto (.txt, .csv), Excel (.xlsx) ou print/foto da ficha para a IA analisar.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    id="upload-planilha-input"
-                    className="hidden"
-                    accept=".txt,.csv,.xlsx,.xls,.pdf,image/*"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) handleFileUpload(f);
-                      e.target.value = "";
-                    }}
-                    disabled={gerarMut.isPending || isExtractingPlanilha}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={gerarMut.isPending || isExtractingPlanilha}
-                    onClick={() => document.getElementById("upload-planilha-input")?.click()}
-                    className="h-8 gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary w-full sm:w-auto"
-                  >
-                    {isExtractingPlanilha ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        <span>Extraindo...</span>
-                      </>
-                    ) : (
-                      <>
-                        <UploadCloud className="h-3.5 w-3.5" />
-                        <span>{planilhaArquivoNome ? "Trocar Arquivo" : "Subir Planilha"}</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {planilhaArquivoNome && (
-                <div className="space-y-2 pt-1 border-t border-border/40">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                      <span className="truncate max-w-[200px] sm:max-w-[280px]">{planilhaArquivoNome}</span>
-                      <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
-                        {planilhaImagem ? "Multimodal / Imagem" : "Texto Extraído"}
-                      </Badge>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowPlanilhaPreview(!showPlanilhaPreview)}
-                        className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
-                      >
-                        {showPlanilhaPreview ? "Recolher" : "Ver / Editar Conteúdo"}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setPlanilhaTexto("");
-                          setPlanilhaArquivoNome(null);
-                          setPlanilhaImagem(null);
-                          setShowPlanilhaPreview(false);
-                        }}
-                        className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-3 w-3 mr-1" />
-                        Remover
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* SELETOR DE MODO DE OPERAÇÃO DA PLANILHA */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setPlanilhaModo("ajustar")}
-                      className={`text-left p-2.5 rounded-lg border text-xs transition-all ${
-                        planilhaModo === "ajustar"
-                          ? "border-primary bg-primary/10 text-primary font-semibold shadow-xs"
-                          : "border-border/60 bg-muted/20 text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold">🔄 Reorganizar & Ajustar</span>
-                        {planilhaModo === "ajustar" && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-                      </div>
-                      <p className="text-[10px] leading-tight font-normal text-muted-foreground">
-                        Reformule os treinos existentes corrigindo volume, exercícios e descansos.
-                      </p>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPlanilhaModo("continuar")}
-                      className={`text-left p-2.5 rounded-lg border text-xs transition-all ${
-                        planilhaModo === "continuar"
-                          ? "border-primary bg-primary/10 text-primary font-semibold shadow-xs"
-                          : "border-border/60 bg-muted/20 text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold">📈 Continuar Periodização</span>
-                        {planilhaModo === "continuar" && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-                      </div>
-                      <p className="text-[10px] leading-tight font-normal text-muted-foreground">
-                        Usa a planilha como histórico prévio e projeta as próximas semanas com sobrecarga.
-                      </p>
-                    </button>
-                  </div>
-
-                  {/* ÁREA EDITÁVEL DO CONTEÚDO EXTRAÍDO */}
-                  {showPlanilhaPreview && (
-                    <div className="space-y-1.5 pt-2 animate-in fade-in duration-150">
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                        <span>Conteúdo da planilha extraído (você pode editar antes de gerar):</span>
-                        <span className="tabular-nums">{planilhaTexto.length} caracteres</span>
-                      </div>
-                      <Textarea
-                        value={planilhaTexto}
-                        onChange={(e) => setPlanilhaTexto(e.target.value)}
-                        rows={6}
-                        disabled={gerarMut.isPending}
-                        className="font-mono text-xs leading-relaxed resize-y bg-slate-900 border-slate-800"
-                        placeholder="Cole ou edite os dados do treino aqui..."
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
             <Button
               onClick={() => gerarMut.mutate()}
               disabled={!podeGerar}
-              className="w-full gap-2 transition-all duration-200 sm:w-auto"
+              className="w-full gap-2 transition-all duration-200 h-10 font-semibold"
             >
               {gerarMut.isPending ? (
                 <>
@@ -1669,11 +1460,230 @@ export function PrescreverIaDialog({
               ) : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  Gerar periodização ({semanas} sem)
+                  {planilhaArquivoNome && planilhaModo === "ajustar"
+                    ? "Reorganizar & Ajustar Treino com IA"
+                    : `Gerar Periodização com IA (${semanas} sem)`}
                 </>
               )}
             </Button>
           </div>
+
+          {/* PARÂMETROS AVANÇADOS / ESTRUTURA */}
+          <Collapsible defaultOpen={false}>
+            <CollapsibleTrigger className="group flex w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-3.5 py-2.5 text-left text-xs font-medium transition-colors duration-200 hover:bg-muted/40">
+              <Settings2 className="h-4 w-4 text-primary" />
+              <span>
+                Parâmetros Avançados & Linha Metodológica ({METHODOLOGY_LABEL[metodologia as Methodology] || metodologia} · {semanas} sem · {diasPorSemana} dias/sem)
+              </span>
+              <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-3">
+              <div className="grid grid-cols-1 gap-4 rounded-xl border border-border/60 bg-muted/20 p-4 sm:grid-cols-2">
+                {(metodologia === "hibrido" || metodologia === "kettlebell_fitness") && moldesHistoricos.length > 0 && (
+                  <div className="col-span-full space-y-2 border-b border-border/40 pb-4">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                      Recuperação de Estrutura (Molde)
+                    </label>
+                    <Select value={moldeSelecionado} onValueChange={setMoldeSelecionado} disabled={gerarMut.isPending}>
+                      <SelectTrigger className="h-9 bg-background border-primary/30">
+                        <SelectValue placeholder="Escolha qual estrutura repetir..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto">
+                          {escopoInicial?.hibrido?.sessaoTemplate?.length ? "Manter molde atual" : "Selecionar molde histórico..."}
+                        </SelectItem>
+                        {moldesHistoricos.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.titulo} ({m.blocks.length} blocos)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground italic">
+                      * A IA usará esta estrutura para prescrever novos exercícios.
+                    </p>
+                  </div>
+                )}
+
+                <div className="col-span-full space-y-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                        Base Técnica (Motor)
+                      </label>
+                      <Select value={metodologia} onValueChange={setMetodologia} disabled={gerarMut.isPending}>
+                        <SelectTrigger className="h-9 border-primary/20 bg-background/50">
+                          <SelectValue placeholder="Selecione a modalidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="musculacao">Musculação</SelectItem>
+                          <SelectItem value="hibrido">Treinamento Híbrido</SelectItem>
+                          <SelectItem value="kettlebell_fitness">Kettlebell Fitness</SelectItem>
+                          <SelectItem value="kettlebell_sport">Kettlebell Sport</SelectItem>
+                          <SelectItem value="levantamento_peso">LPO</SelectItem>
+                          <SelectItem value="treinamento_funcional">Funcional</SelectItem>
+                          <SelectItem value="corrida">Corrida</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                        Escola Metodológica
+                      </label>
+                      <Select value={escola} onValueChange={setEscola} disabled={gerarMut.isPending}>
+                        <SelectTrigger className="h-9 border-primary/20 bg-background/50">
+                          <SelectValue placeholder="Padrão do Sistema" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(ESCOLAS_DISPONIVEIS[metodologia] || [{ value: "auto", label: "Automático" }]).map((e) => (
+                            <SelectItem key={e.value} value={e.value}>
+                              {e.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Semanas (Volume)
+                      </label>
+                      <div className="flex h-9 items-center justify-between rounded-md border bg-background px-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => setSemanas(Math.max(1, semanas - 1))}
+                          disabled={gerarMut.isPending || semanas <= 1}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="text-sm font-medium tabular-nums">{semanas}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => setSemanas(Math.min(12, semanas + 1))}
+                          disabled={gerarMut.isPending || semanas >= 12}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Frequência (Dias/Sem)
+                      </label>
+                      <div className="flex h-9 items-center justify-between rounded-md border bg-background px-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => setDiasPorSemana(Math.max(1, diasPorSemana - 1))}
+                          disabled={gerarMut.isPending || diasPorSemana <= 1}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="text-sm font-medium tabular-nums">{diasPorSemana}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => setDiasPorSemana(Math.min(7, diasPorSemana + 1))}
+                          disabled={gerarMut.isPending || diasPorSemana >= 7}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Histórico considerado (sessões)
+                    </label>
+                    <div className="flex h-9 items-center justify-between rounded-md border bg-background px-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => setHistoricoSessoes(Math.max(0, historicoSessoes - 1))}
+                        disabled={gerarMut.isPending || historicoSessoes <= 0}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="text-sm font-medium tabular-nums">
+                        {historicoSessoes === 0 ? "Sem histórico" : historicoSessoes}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => setHistoricoSessoes(Math.min(12, historicoSessoes + 1))}
+                        disabled={gerarMut.isPending || historicoSessoes >= 12}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      Reduza se aparecer o aviso de histórico muito longo.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Bloqueio de repetição (Cooldown)
+                    </label>
+                    <div className="flex h-9 items-center justify-between rounded-md border bg-background px-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => setCooldownSessoes(Math.max(0, cooldownSessoes - 1))}
+                        disabled={gerarMut.isPending || cooldownSessoes <= 0}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="text-sm font-medium tabular-nums">
+                        {cooldownSessoes === 0 ? "Sem bloqueio" : `${cooldownSessoes} sessões`}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => setCooldownSessoes(Math.min(10, cooldownSessoes + 1))}
+                        disabled={gerarMut.isPending || cooldownSessoes >= 10}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      Evita repetir exercícios usados nas últimas N sessões.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border/60 p-3 bg-muted/20">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">Como usar e limitações:</p>
+                <ul className="space-y-1">
+                  {LIMITACOES.map((l) => (
+                    <li
+                      key={l}
+                      className="flex gap-2 text-xs leading-relaxed text-muted-foreground"
+                    >
+                      <span aria-hidden className="text-primary">•</span>
+                      {l}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {gerarMut.isPending && progresso.length > 0 && (
             <div className="rounded-xl border border-border/60 bg-muted/30 p-4">

@@ -1,8 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+
+const PrescreverIaDialog = lazy(() =>
+  import("@/components/programa-ia/PrescreverIaDialog").then((m) => ({
+    default: m.PrescreverIaDialog,
+  })),
+);
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -401,27 +407,73 @@ function StudentPanel({ student, onDeleted }: { student: any; onDeleted: () => v
 
   const [pickProgram, setPickProgram] = useState<string>("");
   const [pickSession, setPickSession] = useState<string>("");
+  const [iaModalProg, setIaModalProg] = useState<any | null>(null);
+  const [iaLoading, setIaLoading] = useState(false);
+
+  async function handlePrescreverAluno() {
+    try {
+      setIaLoading(true);
+      const { data: coach } = await supabase.from("coaches").select("id").maybeSingle();
+      if (!coach) throw new Error("Perfil de treinador não encontrado");
+      const { data: prog, error } = await supabase
+        .from("programs")
+        .insert({
+          coach_id: coach.id,
+          titulo: `Prescrição IA - ${student.nome}`,
+          metodologia: "musculacao",
+          duracao_semanas: 4,
+          data_inicio: new Date().toISOString().slice(0, 10),
+          status: "rascunho",
+        })
+        .select("id, titulo, metodologia")
+        .single();
+      if (error || !prog) throw error;
+      await supabase.from("assignments").insert({
+        coach_id: coach.id,
+        student_id: student.id,
+        program_id: prog.id,
+      });
+      qc.invalidateQueries({ queryKey: ["assignments", student.id] });
+      qc.invalidateQueries({ queryKey: ["programs-list"] });
+      setIaModalProg(prog);
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao iniciar prescrição com IA");
+    } finally {
+      setIaLoading(false);
+    }
+  }
 
   return (
     <Card className="p-5">
-      <div className="mb-4 flex items-start justify-between">
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <div className="text-lg font-semibold">{student.nome}</div>
           <div className="text-sm text-muted-foreground">{student.email}</div>
           {student.telefone && <div className="text-sm text-muted-foreground">{student.telefone}</div>}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={async () => {
-            if (!confirm("Remover este aluno?")) return;
-            await del({ data: { id: student.id } });
-            qc.invalidateQueries({ queryKey: ["students"] });
-            onDeleted();
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button
+            size="sm"
+            onClick={handlePrescreverAluno}
+            disabled={iaLoading}
+            className="gap-2 font-semibold flex-1 sm:flex-initial"
+          >
+            <Sparkles className="h-4 w-4" />
+            Prescrever com IA / Subir Planilha
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              if (!confirm("Remover este aluno?")) return;
+              await del({ data: { id: student.id } });
+              qc.invalidateQueries({ queryKey: ["students"] });
+              onDeleted();
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="prescricoes" className="w-full">
@@ -601,6 +653,16 @@ function StudentPanel({ student, onDeleted }: { student: any; onDeleted: () => v
           <AthleteMemoryPanel student={student} />
         </TabsContent>
       </Tabs>
+
+      {iaModalProg && (
+        <Suspense fallback={null}>
+          <PrescreverIaDialog
+            programa={iaModalProg}
+            studentId={student.id}
+            onOpenChange={(o) => !o && setIaModalProg(null)}
+          />
+        </Suspense>
+      )}
     </Card>
   );
 }

@@ -180,6 +180,32 @@ export function ProgramasPanel({
     onError: (e: any) => toast.error(e.message),
   });
 
+  async function handleNovoIa() {
+    if (!coach) {
+      toast.error("Perfil de treinador não encontrado");
+      return;
+    }
+    try {
+      const { data: prog, error } = await supabase
+        .from("programs")
+        .insert({
+          coach_id: coach.id,
+          titulo: `Prescrição IA - ${new Date().toLocaleDateString("pt-BR")}`,
+          metodologia: "musculacao",
+          duracao_semanas: 4,
+          data_inicio: new Date().toISOString().slice(0, 10),
+          status: "rascunho",
+        })
+        .select("id, titulo, metodologia")
+        .single();
+      if (error || !prog) throw error;
+      qc.invalidateQueries({ queryKey: programasKey });
+      setIaPrograma({ p: prog, isContinuation: false });
+    } catch (err: any) {
+      toast.error("Falha ao abrir prescritor com IA: " + (err?.message || "erro"));
+    }
+  }
+
   /** Reordena sessões dentro de uma semana gravando `numero_dia`. */
   async function reorderSessoes(programId: string, weekId: string, orderedIds: string[]) {
     const snapshot = qc.getQueryData(programasKey);
@@ -390,29 +416,39 @@ export function ProgramasPanel({
       </header>
       )}
 
-      <div className="mb-5 sm:mb-6 grid gap-2.5 sm:gap-3 grid-cols-1 sm:grid-cols-[minmax(0,1fr)_16rem]">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por título..."
-            className="pl-9"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
+      <div className="mb-5 sm:mb-6 flex flex-col md:flex-row gap-2.5 sm:gap-3 items-stretch md:items-center justify-between">
+        <div className="grid gap-2.5 sm:gap-3 grid-cols-1 sm:grid-cols-[minmax(0,1fr)_16rem] flex-1">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por título..."
+              className="pl-9"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
+          <Select value={met} onValueChange={(v) => setMet(v as any)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas as modalidades</SelectItem>
+              {METHODS.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {METHODOLOGY_LABEL[m]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={met} onValueChange={(v) => setMet(v as any)}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todas as modalidades</SelectItem>
-            {METHODS.map((m) => (
-              <SelectItem key={m} value={m}>
-                {METHODOLOGY_LABEL[m]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
+        <Button
+          onClick={handleNovoIa}
+          className="gap-2 cursor-pointer bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 shrink-0 h-10 px-4 font-semibold"
+        >
+          <Sparkles className="h-4 w-4" />
+          Prescrever com IA / Subir Planilha
+        </Button>
       </div>
 
       {isLoading ? (
@@ -757,11 +793,28 @@ function ProgramaCard({
               </span>
             </div>
           </div>
-          <ChevronRight
-            className={`mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
-              open ? "rotate-90" : ""
-            }`}
-          />
+          <div className="flex items-center gap-2 self-center shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 text-xs text-primary border-primary/30 hover:bg-primary/10 hover:text-primary shrink-0"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onOpenContinuar();
+              }}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline sm:inline">Prescrever com IA</span>
+              <span className="xs:hidden sm:hidden">IA</span>
+            </Button>
+            <ChevronRight
+              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
+                open ? "rotate-90" : ""
+              }`}
+            />
+          </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="border-t border-border/60 bg-muted/20 p-5">
@@ -929,7 +982,7 @@ function ProgramaCard({
             <div className="mt-5 flex flex-col sm:flex-row sm:flex-wrap sm:justify-end gap-2 w-full">
               <Button
                 size="sm"
-                className="w-full sm:w-auto min-h-[40px] gap-2 bg-primary/90 hover:bg-primary cursor-pointer"
+                className="w-full sm:w-auto min-h-[40px] gap-2 bg-primary/90 hover:bg-primary cursor-pointer font-semibold"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -937,7 +990,7 @@ function ProgramaCard({
                 }}
               >
                 <Sparkles className="h-4 w-4" />
-                Continuar gerando
+                Prescrever com IA / Subir Planilha
               </Button>
               <Button
                 size="sm"
