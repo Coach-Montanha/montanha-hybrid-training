@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Montanha Hybrid Training</string>
+    <string name="title_activity_main">Montanha Hybrid Training</string>
+    <string name="package_name">com.ecossistemamontanha.hybridtraining</string>
+    <string name="custom_url_scheme">com.ecossistemamontanha.hybridtraining</string>
+</resources>
