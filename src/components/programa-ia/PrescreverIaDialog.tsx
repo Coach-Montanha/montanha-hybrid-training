@@ -13,6 +13,12 @@ import {
   Minus,
   Download,
   Brain,
+  UploadCloud,
+  FileSpreadsheet,
+  FileText,
+  Image as ImageIcon,
+  Trash2,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -462,6 +468,14 @@ export function PrescreverIaDialog({
   const [moldeSelecionado, setMoldeSelecionado] = useState<string>("auto");
   const isHibrido = metodologia === "hibrido" || metodologia === "kettlebell_fitness";
 
+  // Estados para Upload de Planilha / Treino Prévia
+  const [planilhaTexto, setPlanilhaTexto] = useState("");
+  const [planilhaArquivoNome, setPlanilhaArquivoNome] = useState<string | null>(null);
+  const [planilhaImagem, setPlanilhaImagem] = useState<{ mimeType: string; data: string } | null>(null);
+  const [planilhaModo, setPlanilhaModo] = useState<"ajustar" | "continuar">("ajustar");
+  const [isExtractingPlanilha, setIsExtractingPlanilha] = useState(false);
+  const [showPlanilhaPreview, setShowPlanilhaPreview] = useState(false);
+
   // Efeito para carregar as regras persistidas do programa E preferências globais
   useEffect(() => {
     async function carregarConfiguracoes() {
@@ -607,6 +621,111 @@ export function PrescreverIaDialog({
   const limpar = useCallback(() => {
     setPrompt("");
     setPrevia(null);
+    setPlanilhaTexto("");
+    setPlanilhaArquivoNome(null);
+    setPlanilhaImagem(null);
+    setShowPlanilhaPreview(false);
+  }, []);
+
+  // Extração inteligente de arquivos de treino (.txt, .csv, .xlsx, .pdf, imagens)
+  const handleFileUpload = useCallback(async (file: File) => {
+    if (!file) return;
+    setIsExtractingPlanilha(true);
+    setPlanilhaArquivoNome(file.name);
+
+    try {
+      const fileNameLower = file.name.toLowerCase();
+
+      // 1. Imagens (PNG, JPG, JPEG, WEBP) -> Envio multimodal direto ao Gemini
+      if (file.type.startsWith("image/") || /\.(png|jpe?g|webp)$/i.test(fileNameLower)) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          const base64Data = result.split(",")[1];
+          const mimeType = file.type || (fileNameLower.endsWith(".png") ? "image/png" : "image/jpeg");
+          setPlanilhaImagem({ mimeType, data: base64Data });
+          setPlanilhaTexto(`[Arquivo de imagem anexo: ${file.name}]\nA IA analisará visualmente esta ficha de treino/planilha.`);
+          setShowPlanilhaPreview(true);
+          toast.success(`Ficha em imagem carregada (${file.name})!`);
+          setIsExtractingPlanilha(false);
+        };
+        reader.onerror = () => {
+          toast.error("Falha ao ler o arquivo de imagem.");
+          setIsExtractingPlanilha(false);
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      // 2. Planilhas Excel (.xlsx, .xls) -> Leitura client-side com SheetJS (xlsx)
+      if (/\.(xlsx|xls)$/i.test(fileNameLower)) {
+        const { read, utils } = await import("xlsx");
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = read(arrayBuffer, { type: "array" });
+        let extractedText = "";
+
+        workbook.SheetNames.forEach((sheetName) => {
+          const sheet = workbook.Sheets[sheetName];
+          const csv = utils.sheet_to_csv(sheet, { blankrows: false });
+          if (csv && csv.trim().length > 0) {
+            extractedText += `=== ABA: ${sheetName} ===\n${csv}\n\n`;
+          }
+        });
+
+        if (!extractedText.trim()) {
+          throw new Error("A planilha parece estar vazia.");
+        }
+
+        setPlanilhaTexto(extractedText.trim());
+        setPlanilhaImagem(null);
+        setShowPlanilhaPreview(true);
+        toast.success(`Planilha ${file.name} processada com sucesso!`);
+        setIsExtractingPlanilha(false);
+        return;
+      }
+
+      // 3. Arquivos de Texto (.txt, .csv)
+      if (file.type === "text/plain" || file.type === "text/csv" || /\.(txt|csv)$/i.test(fileNameLower)) {
+        const text = await file.text();
+        if (!text.trim()) {
+          throw new Error("O arquivo de texto está vazio.");
+        }
+        setPlanilhaTexto(text.trim());
+        setPlanilhaImagem(null);
+        setShowPlanilhaPreview(true);
+        toast.success(`Texto de ${file.name} carregado com sucesso!`);
+        setIsExtractingPlanilha(false);
+        return;
+      }
+
+      // 4. PDFs ou outros formatos -> Leitura como texto bruto ou preparação de base64
+      if (file.type === "application/pdf" || fileNameLower.endsWith(".pdf")) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          const base64Data = result.split(",")[1];
+          setPlanilhaImagem({ mimeType: "application/pdf", data: base64Data });
+          setPlanilhaTexto(`[Documento PDF anexo: ${file.name}]\nA IA interpretará o conteúdo estruturado deste PDF.`);
+          setShowPlanilhaPreview(true);
+          toast.success(`PDF ${file.name} anexado para análise da IA!`);
+          setIsExtractingPlanilha(false);
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      // Fallback: tenta ler como texto
+      const rawText = await file.text();
+      setPlanilhaTexto(rawText.slice(0, 30000));
+      setPlanilhaImagem(null);
+      setShowPlanilhaPreview(true);
+      toast.success(`Arquivo ${file.name} importado!`);
+    } catch (err: any) {
+      console.error("[handleFileUpload] Erro:", err);
+      toast.error(`Erro ao processar arquivo: ${err?.message || "formato não suportado"}`);
+    } finally {
+      setIsExtractingPlanilha(false);
+    }
   }, []);
 
   const gerarMut = useMutation({
@@ -645,6 +764,9 @@ export function PrescreverIaDialog({
              historicoSessoes: historicoSessoes,
              cooldownSessoes: cooldownSessoes,
              semanasNovas: semanas,
+             planilhaBase: planilhaTexto.trim() || undefined,
+             planilhaModo: planilhaTexto.trim() ? planilhaModo : undefined,
+             planilhaImagem: planilhaImagem || undefined,
             setTypes: setTypes.map((t) => ({ id: t.id, label: t.label, fields: t.fields })),
             formatRegistry: customFormats.map((f) => ({
               id: f.id,
@@ -1371,13 +1493,168 @@ export function PrescreverIaDialog({
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder={PLACEHOLDER}
-              rows={6}
+              rows={5}
               maxLength={4000}
               disabled={gerarMut.isPending || salvarMut.isPending}
               className="resize-y text-sm leading-relaxed transition-colors duration-200"
             />
             <div className="flex justify-end text-[11px] tabular-nums text-muted-foreground">
               {prompt.trim().length}/4000
+            </div>
+
+            {/* SEÇÃO DE UPLOAD DE PLANILHA / TREINO PRÉVIO */}
+            <div className="rounded-xl border border-border/80 bg-slate-950/60 p-3.5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                    <FileSpreadsheet className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      Subir Planilha / Treino do Aluno
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 uppercase bg-primary/5 text-primary border-primary/20">
+                        Opcional
+                      </Badge>
+                    </h5>
+                    <p className="text-[11px] text-muted-foreground">
+                      Importe texto (.txt, .csv), Excel (.xlsx) ou print/foto da ficha para a IA analisar.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    id="upload-planilha-input"
+                    className="hidden"
+                    accept=".txt,.csv,.xlsx,.xls,.pdf,image/*"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFileUpload(f);
+                      e.target.value = "";
+                    }}
+                    disabled={gerarMut.isPending || isExtractingPlanilha}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={gerarMut.isPending || isExtractingPlanilha}
+                    onClick={() => document.getElementById("upload-planilha-input")?.click()}
+                    className="h-8 gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary w-full sm:w-auto"
+                  >
+                    {isExtractingPlanilha ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span>Extraindo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="h-3.5 w-3.5" />
+                        <span>{planilhaArquivoNome ? "Trocar Arquivo" : "Subir Planilha"}</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {planilhaArquivoNome && (
+                <div className="space-y-2 pt-1 border-t border-border/40">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                      <span className="truncate max-w-[200px] sm:max-w-[280px]">{planilhaArquivoNome}</span>
+                      <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
+                        {planilhaImagem ? "Multimodal / Imagem" : "Texto Extraído"}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowPlanilhaPreview(!showPlanilhaPreview)}
+                        className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                      >
+                        {showPlanilhaPreview ? "Recolher" : "Ver / Editar Conteúdo"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setPlanilhaTexto("");
+                          setPlanilhaArquivoNome(null);
+                          setPlanilhaImagem(null);
+                          setShowPlanilhaPreview(false);
+                        }}
+                        className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Remover
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* SELETOR DE MODO DE OPERAÇÃO DA PLANILHA */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setPlanilhaModo("ajustar")}
+                      className={`text-left p-2.5 rounded-lg border text-xs transition-all ${
+                        planilhaModo === "ajustar"
+                          ? "border-primary bg-primary/10 text-primary font-semibold shadow-xs"
+                          : "border-border/60 bg-muted/20 text-muted-foreground hover:border-border"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold">🔄 Reorganizar & Ajustar</span>
+                        {planilhaModo === "ajustar" && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                      </div>
+                      <p className="text-[10px] leading-tight font-normal text-muted-foreground">
+                        Reformule os treinos existentes corrigindo volume, exercícios e descansos.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPlanilhaModo("continuar")}
+                      className={`text-left p-2.5 rounded-lg border text-xs transition-all ${
+                        planilhaModo === "continuar"
+                          ? "border-primary bg-primary/10 text-primary font-semibold shadow-xs"
+                          : "border-border/60 bg-muted/20 text-muted-foreground hover:border-border"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold">📈 Continuar Periodização</span>
+                        {planilhaModo === "continuar" && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                      </div>
+                      <p className="text-[10px] leading-tight font-normal text-muted-foreground">
+                        Usa a planilha como histórico prévio e projeta as próximas semanas com sobrecarga.
+                      </p>
+                    </button>
+                  </div>
+
+                  {/* ÁREA EDITÁVEL DO CONTEÚDO EXTRAÍDO */}
+                  {showPlanilhaPreview && (
+                    <div className="space-y-1.5 pt-2 animate-in fade-in duration-150">
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                        <span>Conteúdo da planilha extraído (você pode editar antes de gerar):</span>
+                        <span className="tabular-nums">{planilhaTexto.length} caracteres</span>
+                      </div>
+                      <Textarea
+                        value={planilhaTexto}
+                        onChange={(e) => setPlanilhaTexto(e.target.value)}
+                        rows={6}
+                        disabled={gerarMut.isPending}
+                        className="font-mono text-xs leading-relaxed resize-y bg-slate-900 border-slate-800"
+                        placeholder="Cole ou edite os dados do treino aqui..."
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <Button
               onClick={() => gerarMut.mutate()}

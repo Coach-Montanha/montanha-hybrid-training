@@ -78,6 +78,8 @@ export type RotinaContexto = {
   set_types?: any[];
   custom_formats?: any[];
   aluno_info?: string | null;
+  planilha_base?: string | null;
+  planilha_modo?: "ajustar" | "continuar" | null;
 };
 
 export function montarUserPrompt(ctx: RotinaContexto, instrucoes: string): string {
@@ -98,6 +100,20 @@ export function montarUserPrompt(ctx: RotinaContexto, instrucoes: string): strin
       ].join("\n")
     : ctx.resumo_anterior;
 
+  const planilhaSection = ctx.planilha_base
+    ? [
+        "--- PLANILHA / HISTÓRICO DE TREINO SUBIDO PELO TREINADOR ---",
+        `OBJETIVO DO PROCESSAMENTO: ${
+          ctx.planilha_modo === "ajustar"
+            ? "REORGANIZAR E AJUSTAR A PLANILHA ATUAL (refatore os treinos fornecidos corrigindo volume, substituições de exercícios e adequando biomecanicamente aos novos requisitos)."
+            : "CONTINUAR PERIODIZAÇÃO (use esta planilha como histórico das semanas anteriores e projete as novas semanas subsequentes com sobrecarga progressiva estruturada)."
+        }`,
+        "DADOS DA PLANILHA DO ALUNO:",
+        ctx.planilha_base,
+        "----------------------------------------------------------",
+      ].join("\n")
+    : null;
+
   return [
     "CONTEXTO DA ROTINA (não repita, apenas use):",
     `- Nome: ${ctx.titulo}`,
@@ -110,6 +126,7 @@ export function montarUserPrompt(ctx: RotinaContexto, instrucoes: string): strin
     `- Nomenclatura dos dias: ${ctx.nomenclatura} (ex.: ${exemplo})`,
     `- Sessões já existentes: ${ctx.sessoes_existentes}`,
     historySection ? `- CONTEXTO DA PROGRAMAÇÃO ATUAL:\n${historySection}` : null,
+    planilhaSection,
     ctx.aluno_info ? `- LIMITAÇÕES E INFO DO ALUNO: ${ctx.aluno_info}` : null,
     ctx.objetivos ? `- Objetivos: ${ctx.objetivos}` : null,
     ctx.set_types ? `- TIPOS DE SÉRIES DISPONÍVEIS: ${ctx.set_types.map(t => `${t.label} (ID: ${t.id})`).join(", ")}` : null,

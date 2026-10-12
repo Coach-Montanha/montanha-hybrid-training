@@ -148,6 +148,7 @@ export type CallAiJsonArgs = {
   scope: string;
   system?: string;
   prompt: string;
+  inlineData?: { mimeType: string; data: string };
   temperature?: number;
 };
 
@@ -164,8 +165,19 @@ async function callGeminiDirect<T = any>(apiKey: string, args: CallAiJsonArgs): 
   const modelName = (process.env.GEMINI_MODEL || "gemini-2.5-flash").replace(/^google\//, "");
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
+  const userParts: any[] = [];
+  if (args.inlineData) {
+    userParts.push({
+      inlineData: {
+        mimeType: args.inlineData.mimeType,
+        data: args.inlineData.data,
+      },
+    });
+  }
+  userParts.push({ text: args.prompt });
+
   const body: any = {
-    contents: [{ role: "user", parts: [{ text: args.prompt }] }],
+    contents: [{ role: "user", parts: userParts }],
     generationConfig: {
       temperature: args.temperature ?? 0.7,
       responseMimeType: "application/json",

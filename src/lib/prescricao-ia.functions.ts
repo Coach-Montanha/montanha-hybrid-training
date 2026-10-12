@@ -222,6 +222,14 @@ const INPUT = z.object({
   hibrido: z.any().optional(),
   setTypes: z.array(z.any()).optional(),
   formatRegistry: z.array(z.any()).optional(),
+  planilhaBase: z.string().max(40000).optional(),
+  planilhaModo: z.enum(["ajustar", "continuar"]).optional(),
+  planilhaImagem: z
+    .object({
+      mimeType: z.string(),
+      data: z.string(),
+    })
+    .optional(),
 });
 
 export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
@@ -547,7 +555,15 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
               customFormats: data.formatRegistry || [],
             });
           })()
-        : montarUserPrompt({ ...ctx, set_types: data.setTypes || BUILTIN_SET_TYPES }, data.prompt);
+        : montarUserPrompt(
+            {
+              ...ctx,
+              set_types: data.setTypes || BUILTIN_SET_TYPES,
+              planilha_base: data.planilhaBase,
+              planilha_modo: data.planilhaModo,
+            },
+            data.prompt,
+          );
 
     // Adaptador único do gateway (nada de chamar server functions de dentro de
     // um handler — isso deixava a função fora do manifesto e causava o erro
@@ -561,6 +577,9 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
       metodologia: metodologiaEfetiva,
       semanas: data.semanasNovas,
       model: modelToUse,
+      hasPlanilhaBase: Boolean(data.planilhaBase),
+      planilhaModo: data.planilhaModo,
+      hasInlineData: Boolean(data.planilhaImagem),
       promptChars: systemPrompt.length + userPrompt.length,
     });
 
@@ -570,6 +589,7 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
         scope: "prescricao-ia",
         system: systemPrompt,
         prompt: userPrompt,
+        inlineData: data.planilhaImagem,
       });
       conteudo = resultadoIa.raw;
     } catch (err) {
