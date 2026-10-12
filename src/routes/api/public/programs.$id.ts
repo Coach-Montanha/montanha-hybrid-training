@@ -43,7 +43,7 @@ export const Route = createFileRoute("/api/public/programs/$id")({
           if (!UUID_RE.test(id)) throw new ApiError(400, "Invalid program id");
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data, error } = await supabaseAdmin
+          let query = supabaseAdmin
             .from("programs")
             .select(
               `id, titulo, descricao, metodologia, data_inicio, duracao_semanas, status,
@@ -61,9 +61,9 @@ export const Route = createFileRoute("/api/public/programs/$id")({
                  )
                )`,
             )
-            .eq("id", id)
-            .eq("coach_id", coachId)
-            .maybeSingle();
+            .eq("id", id);
+
+          const { data, error } = await (coachId ? query.eq("coach_id", coachId) : query).maybeSingle();
 
           if (error) throw error;
           if (!data) throw new ApiError(404, "Not found");

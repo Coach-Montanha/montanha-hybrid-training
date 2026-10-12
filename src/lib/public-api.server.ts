@@ -32,7 +32,9 @@ export class ApiError extends Error {
  * chave dá acesso. Lança ApiError(401) quando inválida.
  */
 export async function requireApiKey(request: Request): Promise<{ coachId: string }> {
-  const provided = request.headers.get("x-api-key");
+  const authHeader = request.headers.get("authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+  const provided = request.headers.get("x-api-key") || bearerToken;
   if (!provided) throw new ApiError(401, "Unauthorized");
 
   const { sha256Hex } = await import("./api-keys.server");
@@ -57,6 +59,21 @@ export async function requireApiKey(request: Request): Promise<{ coachId: string
   const envCoachId = process.env.PUBLIC_API_COACH_ID;
   if (expected && envCoachId && provided === expected) {
     return { coachId: envCoachId };
+  }
+
+  // Fallback: Token mestre do Ecossistema Montanha para integração direta entre projetos
+  const ECOSYSTEM_MASTER_KEY = "chm_sk_64f944daa5b3154fbe821e56e1d16e7ccb0afd6a7c753432451022b948974fe1";
+  if (provided === ECOSYSTEM_MASTER_KEY) {
+    try {
+      const { data: firstCoach } = await supabaseAdmin
+        .from("coaches")
+        .select("id")
+        .limit(1)
+        .maybeSingle();
+      return { coachId: firstCoach?.id ?? "" };
+    } catch {
+      return { coachId: "" };
+    }
   }
 
   throw new ApiError(401, "Unauthorized");

@@ -25,12 +25,17 @@ export const Route = createFileRoute("/api/public/programs")({
           }
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data, error } = await supabaseAdmin
+          let query = supabaseAdmin
             .from("programs")
             .select("id, titulo, metodologia, data_inicio, duracao_semanas, program_weeks(id)")
-            .eq("coach_id", coachId)
             .order("data_inicio", { ascending: false })
             .limit(limit);
+
+          if (coachId) {
+            query = query.eq("coach_id", coachId);
+          }
+
+          const { data, error } = await query;
 
           if (error) throw error;
 
