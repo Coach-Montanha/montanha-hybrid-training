@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { SessionBuilder } from "@/components/session-builder/SessionBuilder";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/app/sessoes/nova")({
-  component: () => <SessionBuilder />,
+  beforeLoad: () => {
+    throw redirect({ to: "/app/treinos", search: { aba: "nova", ia: false } });
+  },
 });

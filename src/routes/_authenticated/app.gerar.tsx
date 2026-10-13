@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, redirect } from "@tanstack/react-router";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -64,6 +64,9 @@ const ESCOPO_LABEL: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/_authenticated/app/gerar")({
+  beforeLoad: () => {
+    throw redirect({ to: "/app/treinos", search: { aba: "gerar", ia: false } });
+  },
   component: GerarPage,
 });
 

@@ -21,6 +21,19 @@ interface OneRepMaxDialogProps {
   initialReps?: number;
 }
 
+export function calculateOneRepMax(weight: number, reps: number) {
+  if (!weight || !reps || reps <= 0) {
+    return { epley: 0, brzycki: 0, estimated1RM: 0 };
+  }
+  if (reps === 1) {
+    return { epley: weight, brzycki: weight, estimated1RM: weight };
+  }
+  const epley = weight * (1 + 0.0333 * reps);
+  const brzycki = reps >= 37 ? weight : weight / (1.0278 - 0.0278 * reps);
+  const estimated1RM = Math.round(((epley + brzycki) / 2) * 10) / 10;
+  return { epley, brzycki, estimated1RM };
+}
+
 export function OneRepMaxDialog({
   open,
   onOpenChange,
@@ -31,25 +44,10 @@ export function OneRepMaxDialog({
   const [weight, setWeight] = React.useState<number>(initialWeight);
   const [reps, setReps] = React.useState<number>(initialReps);
 
-  // Fórmulas consolidadas da fisiologia do exercício
-  const epley = React.useMemo(() => {
-    if (!weight || !reps || reps <= 0) return 0;
-    if (reps === 1) return weight;
-    return weight * (1 + 0.0333 * reps);
-  }, [weight, reps]);
-
-  const brzycki = React.useMemo(() => {
-    if (!weight || !reps || reps <= 0) return 0;
-    if (reps === 1) return weight;
-    if (reps >= 37) return weight;
-    return weight / (1.0278 - 0.0278 * reps);
-  }, [weight, reps]);
-
-  // Média ponderada entre Epley e Brzycki para maior acurácia
-  const estimated1RM = React.useMemo(() => {
-    if (reps === 1) return weight;
-    return Math.round(((epley + brzycki) / 2) * 10) / 10;
-  }, [epley, brzycki, reps, weight]);
+  const { epley, brzycki, estimated1RM } = React.useMemo(
+    () => calculateOneRepMax(weight, reps),
+    [weight, reps],
+  );
 
   const percentages = React.useMemo(() => {
     const list = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];

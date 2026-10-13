@@ -135,16 +135,6 @@ function desenharSessao(treino: TreinoPdf, sessao: SessaoPdf): HTMLCanvasElement
   return paginas;
 }
 
-function toBlob(canvas: HTMLCanvasElement, formato: "png" | "jpg"): Promise<Blob> {
-  return new Promise((resolve, reject) =>
-    canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("Falha ao gerar imagem"))),
-      formato === "jpg" ? "image/jpeg" : "image/png",
-      formato === "jpg" ? 0.95 : undefined,
-    ),
-  );
-}
-
 function slug(s: string) {
   return s
     .normalize("NFD")
@@ -164,6 +154,7 @@ export async function exportarSessoesImagemA4(
   formato: "png" | "jpg" = "png",
   nomeZip = `treinos_${formato}.zip`,
 ): Promise<number> {
+  const { canvasParaBlob, baixarBlob } = await import("./image-export");
   const treino = await prepararTreinoPdf(sessionIds);
   const arquivos: { nome: string; blob: Blob }[] = [];
 
@@ -173,29 +164,19 @@ export async function exportarSessoesImagemA4(
       const sufixo = paginas.length > 1 ? `-p${i + 1}` : "";
       arquivos.push({
         nome: `${slug(sessao.titulo) || "sessao"}${sufixo}.${formato}`,
-        blob: await toBlob(paginas[i], formato),
+        blob: await canvasParaBlob(paginas[i], formato),
       });
     }
   }
 
   if (arquivos.length === 1) {
-    const url = URL.createObjectURL(arquivos[0].blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = arquivos[0].nome;
-    a.click();
-    URL.revokeObjectURL(url);
+    baixarBlob(arquivos[0].blob, arquivos[0].nome);
     return 1;
   }
 
   const zip = new JSZip();
   arquivos.forEach((f) => zip.file(f.nome, f.blob));
   const zipBlob = await zip.generateAsync({ type: "blob" });
-  const url = URL.createObjectURL(zipBlob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = nomeZip;
-  a.click();
-  URL.revokeObjectURL(url);
+  baixarBlob(zipBlob, nomeZip);
   return arquivos.length;
 }

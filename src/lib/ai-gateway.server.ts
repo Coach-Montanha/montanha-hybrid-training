@@ -366,6 +366,7 @@ export async function callLovableAiJson<T = any>(args: CallAiJsonArgs): Promise<
       prompt: args.prompt,
       systemInstruction: args.system,
       temperature: args.temperature ?? 0.7,
+      excludeProviders: geminiKey ? ["gemini"] : undefined,
     });
     const json = parseJsonDefensive<T>(ecoRes.text);
     return {

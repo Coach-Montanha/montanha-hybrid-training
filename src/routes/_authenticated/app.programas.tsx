@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Suspense, lazy, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,6 +63,9 @@ const PrescreverIaDialog = lazy(() =>
 );
 
 export const Route = createFileRoute("/_authenticated/app/programas")({
+  beforeLoad: () => {
+    throw redirect({ to: "/app/treinos", search: { aba: "programas", ia: false } });
+  },
   component: ProgramasPage,
 });
 

@@ -9,51 +9,40 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MasterAdminRouteImport } from './routes/master-admin'
-import { Route as EcoRouteImport } from './routes/eco'
-import { Route as CreateRouteImport } from './routes/create'
-import { Route as BoostRouteImport } from './routes/boost'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthPrimeiroAcessoRouteImport } from './routes/auth.primeiro-acesso'
-import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BoostRouteImport } from './routes/boost'
+import { Route as CreateRouteImport } from './routes/create'
+import { Route as EcoRouteImport } from './routes/eco'
+import { Route as MasterAdminRouteImport } from './routes/master-admin'
 import { Route as AuthenticatedAlunoRouteImport } from './routes/_authenticated/aluno'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthPrimeiroAcessoRouteImport } from './routes/auth.primeiro-acesso'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
-import { Route as ApiPublicProgramsRouteImport } from './routes/api/public/programs'
-import { Route as ApiPublicExercisesRouteImport } from './routes/api/public/exercises'
-import { Route as AuthenticatedAppTreinosRouteImport } from './routes/_authenticated/app.treinos'
-import { Route as AuthenticatedAppProgramasRouteImport } from './routes/_authenticated/app.programas'
-import { Route as AuthenticatedAppMarcaRouteImport } from './routes/_authenticated/app.marca'
-import { Route as AuthenticatedAppGerarRouteImport } from './routes/_authenticated/app.gerar'
-import { Route as AuthenticatedAppExerciciosRouteImport } from './routes/_authenticated/app.exercicios'
-import { Route as AuthenticatedAppConfiguracoesRouteImport } from './routes/_authenticated/app.configuracoes'
-import { Route as AuthenticatedAppArquivosRouteImport } from './routes/_authenticated/app.arquivos'
 import { Route as AuthenticatedAppAlunosRouteImport } from './routes/_authenticated/app.alunos'
-import { Route as ApiPublicProgramsIdRouteImport } from './routes/api/public/programs.$id'
-import { Route as AuthenticatedAppSessoesNovaRouteImport } from './routes/_authenticated/app.sessoes.nova'
-import { Route as AuthenticatedAppSessoesIdRouteImport } from './routes/_authenticated/app.sessoes.$id'
-import { Route as AuthenticatedAppExerciciosDuplicadosRouteImport } from './routes/_authenticated/app.exercicios.duplicados'
+import { Route as AuthenticatedAppArquivosRouteImport } from './routes/_authenticated/app.arquivos'
+import { Route as AuthenticatedAppConfiguracoesRouteImport } from './routes/_authenticated/app.configuracoes'
+import { Route as AuthenticatedAppExerciciosRouteImport } from './routes/_authenticated/app.exercicios'
+import { Route as AuthenticatedAppGerarRouteImport } from './routes/_authenticated/app.gerar'
+import { Route as AuthenticatedAppMarcaRouteImport } from './routes/_authenticated/app.marca'
+import { Route as AuthenticatedAppProgramasRouteImport } from './routes/_authenticated/app.programas'
+import { Route as AuthenticatedAppTreinosRouteImport } from './routes/_authenticated/app.treinos'
+import { Route as ApiPublicExercisesRouteImport } from './routes/api/public/exercises'
+import { Route as ApiPublicProgramsRouteImport } from './routes/api/public/programs'
 import { Route as AuthenticatedAlunoSessaoIdRouteImport } from './routes/_authenticated/aluno.sessao.$id'
+import { Route as AuthenticatedAppExerciciosDuplicadosRouteImport } from './routes/_authenticated/app.exercicios.duplicados'
+import { Route as AuthenticatedAppSessoesIdRouteImport } from './routes/_authenticated/app.sessoes.$id'
+import { Route as AuthenticatedAppSessoesNovaRouteImport } from './routes/_authenticated/app.sessoes.nova'
+import { Route as ApiPublicProgramsIdRouteImport } from './routes/api/public/programs.$id'
 
-const MasterAdminRoute = MasterAdminRouteImport.update({
-  id: '/master-admin',
-  path: '/master-admin',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcoRoute = EcoRouteImport.update({
-  id: '/eco',
-  path: '/eco',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CreateRoute = CreateRouteImport.update({
-  id: '/create',
-  path: '/create',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BoostRoute = BoostRouteImport.update({
-  id: '/boost',
-  path: '/boost',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -61,70 +50,55 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const BoostRoute = BoostRouteImport.update({
+  id: '/boost',
+  path: '/boost',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const CreateRoute = CreateRouteImport.update({
+  id: '/create',
+  path: '/create',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthPrimeiroAcessoRoute = AuthPrimeiroAcessoRouteImport.update({
-  id: '/primeiro-acesso',
-  path: '/primeiro-acesso',
-  getParentRoute: () => AuthRoute,
+const EcoRoute = EcoRouteImport.update({
+  id: '/eco',
+  path: '/eco',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const MasterAdminRoute = MasterAdminRouteImport.update({
+  id: '/master-admin',
+  path: '/master-admin',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAlunoRoute = AuthenticatedAlunoRouteImport.update({
   id: '/aluno',
   path: '/aluno',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthPrimeiroAcessoRoute = AuthPrimeiroAcessoRouteImport.update({
+  id: '/primeiro-acesso',
+  path: '/primeiro-acesso',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const ApiPublicProgramsRoute = ApiPublicProgramsRouteImport.update({
-  id: '/api/public/programs',
-  path: '/api/public/programs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicExercisesRoute = ApiPublicExercisesRouteImport.update({
-  id: '/api/public/exercises',
-  path: '/api/public/exercises',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedAppTreinosRoute = AuthenticatedAppTreinosRouteImport.update({
-  id: '/treinos',
-  path: '/treinos',
+const AuthenticatedAppAlunosRoute = AuthenticatedAppAlunosRouteImport.update({
+  id: '/alunos',
+  path: '/alunos',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AuthenticatedAppProgramasRoute =
-  AuthenticatedAppProgramasRouteImport.update({
-    id: '/programas',
-    path: '/programas',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppMarcaRoute = AuthenticatedAppMarcaRouteImport.update({
-  id: '/marca',
-  path: '/marca',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
-const AuthenticatedAppGerarRoute = AuthenticatedAppGerarRouteImport.update({
-  id: '/gerar',
-  path: '/gerar',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
-const AuthenticatedAppExerciciosRoute =
-  AuthenticatedAppExerciciosRouteImport.update({
-    id: '/exercicios',
-    path: '/exercicios',
+const AuthenticatedAppArquivosRoute =
+  AuthenticatedAppArquivosRouteImport.update({
+    id: '/arquivos',
+    path: '/arquivos',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppConfiguracoesRoute =
@@ -133,33 +107,48 @@ const AuthenticatedAppConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppArquivosRoute =
-  AuthenticatedAppArquivosRouteImport.update({
-    id: '/arquivos',
-    path: '/arquivos',
+const AuthenticatedAppExerciciosRoute =
+  AuthenticatedAppExerciciosRouteImport.update({
+    id: '/exercicios',
+    path: '/exercicios',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppAlunosRoute = AuthenticatedAppAlunosRouteImport.update({
-  id: '/alunos',
-  path: '/alunos',
+const AuthenticatedAppGerarRoute = AuthenticatedAppGerarRouteImport.update({
+  id: '/gerar',
+  path: '/gerar',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const ApiPublicProgramsIdRoute = ApiPublicProgramsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiPublicProgramsRoute,
+const AuthenticatedAppMarcaRoute = AuthenticatedAppMarcaRouteImport.update({
+  id: '/marca',
+  path: '/marca',
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AuthenticatedAppSessoesNovaRoute =
-  AuthenticatedAppSessoesNovaRouteImport.update({
-    id: '/sessoes/nova',
-    path: '/sessoes/nova',
+const AuthenticatedAppProgramasRoute =
+  AuthenticatedAppProgramasRouteImport.update({
+    id: '/programas',
+    path: '/programas',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppSessoesIdRoute =
-  AuthenticatedAppSessoesIdRouteImport.update({
-    id: '/sessoes/$id',
-    path: '/sessoes/$id',
-    getParentRoute: () => AuthenticatedAppRoute,
+const AuthenticatedAppTreinosRoute = AuthenticatedAppTreinosRouteImport.update({
+  id: '/treinos',
+  path: '/treinos',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const ApiPublicExercisesRoute = ApiPublicExercisesRouteImport.update({
+  id: '/api/public/exercises',
+  path: '/api/public/exercises',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicProgramsRoute = ApiPublicProgramsRouteImport.update({
+  id: '/api/public/programs',
+  path: '/api/public/programs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAlunoSessaoIdRoute =
+  AuthenticatedAlunoSessaoIdRouteImport.update({
+    id: '/sessao/$id',
+    path: '/sessao/$id',
+    getParentRoute: () => AuthenticatedAlunoRoute,
   } as any)
 const AuthenticatedAppExerciciosDuplicadosRoute =
   AuthenticatedAppExerciciosDuplicadosRouteImport.update({
@@ -167,12 +156,23 @@ const AuthenticatedAppExerciciosDuplicadosRoute =
     path: '/duplicados',
     getParentRoute: () => AuthenticatedAppExerciciosRoute,
   } as any)
-const AuthenticatedAlunoSessaoIdRoute =
-  AuthenticatedAlunoSessaoIdRouteImport.update({
-    id: '/sessao/$id',
-    path: '/sessao/$id',
-    getParentRoute: () => AuthenticatedAlunoRoute,
+const AuthenticatedAppSessoesIdRoute =
+  AuthenticatedAppSessoesIdRouteImport.update({
+    id: '/sessoes/$id',
+    path: '/sessoes/$id',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppSessoesNovaRoute =
+  AuthenticatedAppSessoesNovaRouteImport.update({
+    id: '/sessoes/nova',
+    path: '/sessoes/nova',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const ApiPublicProgramsIdRoute = ApiPublicProgramsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiPublicProgramsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -354,39 +354,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/master-admin': {
-      id: '/master-admin'
-      path: '/master-admin'
-      fullPath: '/master-admin'
-      preLoaderRoute: typeof MasterAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/eco': {
-      id: '/eco'
-      path: '/eco'
-      fullPath: '/eco'
-      preLoaderRoute: typeof EcoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/create': {
-      id: '/create'
-      path: '/create'
-      fullPath: '/create'
-      preLoaderRoute: typeof CreateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/boost': {
-      id: '/boost'
-      path: '/boost'
-      fullPath: '/boost'
-      preLoaderRoute: typeof BoostRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -396,26 +368,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/primeiro-acesso': {
-      id: '/auth/primeiro-acesso'
-      path: '/primeiro-acesso'
-      fullPath: '/auth/primeiro-acesso'
-      preLoaderRoute: typeof AuthPrimeiroAcessoRouteImport
-      parentRoute: typeof AuthRoute
+    '/boost': {
+      id: '/boost'
+      path: '/boost'
+      fullPath: '/boost'
+      preLoaderRoute: typeof BoostRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/app': {
-      id: '/_authenticated/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AuthenticatedAppRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eco': {
+      id: '/eco'
+      path: '/eco'
+      fullPath: '/eco'
+      preLoaderRoute: typeof EcoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/master-admin': {
+      id: '/master-admin'
+      path: '/master-admin'
+      fullPath: '/master-admin'
+      preLoaderRoute: typeof MasterAdminRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/aluno': {
       id: '/_authenticated/aluno'
@@ -424,74 +410,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlunoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/auth/primeiro-acesso': {
+      id: '/auth/primeiro-acesso'
+      path: '/primeiro-acesso'
+      fullPath: '/auth/primeiro-acesso'
+      preLoaderRoute: typeof AuthPrimeiroAcessoRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_authenticated/app/': {
       id: '/_authenticated/app/'
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/api/public/programs': {
-      id: '/api/public/programs'
-      path: '/api/public/programs'
-      fullPath: '/api/public/programs'
-      preLoaderRoute: typeof ApiPublicProgramsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/exercises': {
-      id: '/api/public/exercises'
-      path: '/api/public/exercises'
-      fullPath: '/api/public/exercises'
-      preLoaderRoute: typeof ApiPublicExercisesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/app/treinos': {
-      id: '/_authenticated/app/treinos'
-      path: '/treinos'
-      fullPath: '/app/treinos'
-      preLoaderRoute: typeof AuthenticatedAppTreinosRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/programas': {
-      id: '/_authenticated/app/programas'
-      path: '/programas'
-      fullPath: '/app/programas'
-      preLoaderRoute: typeof AuthenticatedAppProgramasRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/marca': {
-      id: '/_authenticated/app/marca'
-      path: '/marca'
-      fullPath: '/app/marca'
-      preLoaderRoute: typeof AuthenticatedAppMarcaRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/gerar': {
-      id: '/_authenticated/app/gerar'
-      path: '/gerar'
-      fullPath: '/app/gerar'
-      preLoaderRoute: typeof AuthenticatedAppGerarRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/exercicios': {
-      id: '/_authenticated/app/exercicios'
-      path: '/exercicios'
-      fullPath: '/app/exercicios'
-      preLoaderRoute: typeof AuthenticatedAppExerciciosRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/configuracoes': {
-      id: '/_authenticated/app/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/app/configuracoes'
-      preLoaderRoute: typeof AuthenticatedAppConfiguracoesRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/arquivos': {
-      id: '/_authenticated/app/arquivos'
-      path: '/arquivos'
-      fullPath: '/app/arquivos'
-      preLoaderRoute: typeof AuthenticatedAppArquivosRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/alunos': {
@@ -501,26 +438,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAlunosRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/api/public/programs/$id': {
-      id: '/api/public/programs/$id'
-      path: '/$id'
-      fullPath: '/api/public/programs/$id'
-      preLoaderRoute: typeof ApiPublicProgramsIdRouteImport
-      parentRoute: typeof ApiPublicProgramsRoute
-    }
-    '/_authenticated/app/sessoes/nova': {
-      id: '/_authenticated/app/sessoes/nova'
-      path: '/sessoes/nova'
-      fullPath: '/app/sessoes/nova'
-      preLoaderRoute: typeof AuthenticatedAppSessoesNovaRouteImport
+    '/_authenticated/app/arquivos': {
+      id: '/_authenticated/app/arquivos'
+      path: '/arquivos'
+      fullPath: '/app/arquivos'
+      preLoaderRoute: typeof AuthenticatedAppArquivosRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/sessoes/$id': {
-      id: '/_authenticated/app/sessoes/$id'
-      path: '/sessoes/$id'
-      fullPath: '/app/sessoes/$id'
-      preLoaderRoute: typeof AuthenticatedAppSessoesIdRouteImport
+    '/_authenticated/app/configuracoes': {
+      id: '/_authenticated/app/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/app/configuracoes'
+      preLoaderRoute: typeof AuthenticatedAppConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/exercicios': {
+      id: '/_authenticated/app/exercicios'
+      path: '/exercicios'
+      fullPath: '/app/exercicios'
+      preLoaderRoute: typeof AuthenticatedAppExerciciosRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/gerar': {
+      id: '/_authenticated/app/gerar'
+      path: '/gerar'
+      fullPath: '/app/gerar'
+      preLoaderRoute: typeof AuthenticatedAppGerarRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/marca': {
+      id: '/_authenticated/app/marca'
+      path: '/marca'
+      fullPath: '/app/marca'
+      preLoaderRoute: typeof AuthenticatedAppMarcaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/programas': {
+      id: '/_authenticated/app/programas'
+      path: '/programas'
+      fullPath: '/app/programas'
+      preLoaderRoute: typeof AuthenticatedAppProgramasRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/treinos': {
+      id: '/_authenticated/app/treinos'
+      path: '/treinos'
+      fullPath: '/app/treinos'
+      preLoaderRoute: typeof AuthenticatedAppTreinosRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/api/public/exercises': {
+      id: '/api/public/exercises'
+      path: '/api/public/exercises'
+      fullPath: '/api/public/exercises'
+      preLoaderRoute: typeof ApiPublicExercisesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/programs': {
+      id: '/api/public/programs'
+      path: '/api/public/programs'
+      fullPath: '/api/public/programs'
+      preLoaderRoute: typeof ApiPublicProgramsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/aluno/sessao/$id': {
+      id: '/_authenticated/aluno/sessao/$id'
+      path: '/sessao/$id'
+      fullPath: '/aluno/sessao/$id'
+      preLoaderRoute: typeof AuthenticatedAlunoSessaoIdRouteImport
+      parentRoute: typeof AuthenticatedAlunoRoute
     }
     '/_authenticated/app/exercicios/duplicados': {
       id: '/_authenticated/app/exercicios/duplicados'
@@ -529,12 +515,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppExerciciosDuplicadosRouteImport
       parentRoute: typeof AuthenticatedAppExerciciosRoute
     }
-    '/_authenticated/aluno/sessao/$id': {
-      id: '/_authenticated/aluno/sessao/$id'
-      path: '/sessao/$id'
-      fullPath: '/aluno/sessao/$id'
-      preLoaderRoute: typeof AuthenticatedAlunoSessaoIdRouteImport
-      parentRoute: typeof AuthenticatedAlunoRoute
+    '/_authenticated/app/sessoes/$id': {
+      id: '/_authenticated/app/sessoes/$id'
+      path: '/sessoes/$id'
+      fullPath: '/app/sessoes/$id'
+      preLoaderRoute: typeof AuthenticatedAppSessoesIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/sessoes/nova': {
+      id: '/_authenticated/app/sessoes/nova'
+      path: '/sessoes/nova'
+      fullPath: '/app/sessoes/nova'
+      preLoaderRoute: typeof AuthenticatedAppSessoesNovaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/api/public/programs/$id': {
+      id: '/api/public/programs/$id'
+      path: '/$id'
+      fullPath: '/api/public/programs/$id'
+      preLoaderRoute: typeof ApiPublicProgramsIdRouteImport
+      parentRoute: typeof ApiPublicProgramsRoute
     }
   }
 }

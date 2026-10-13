@@ -21,7 +21,7 @@ import {
   X,
   ShieldAlert
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase as sharedSupabase } from '@/integrations/supabase/client';
 import {
   validateEmailMx,
   checkAndLockGuestDemo,
@@ -141,19 +141,12 @@ export const MasterAdminDashboard: React.FC = () => {
     let loaded: EcosystemSubscription[] = [];
 
     try {
-      const url =
-        (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
-        (typeof process !== 'undefined' && process.env?.SUPABASE_URL);
-      const key =
-        (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_SUPABASE_ANON_KEY || import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY)) ||
-        (typeof process !== 'undefined' && (process.env?.SUPABASE_ANON_KEY || process.env?.SUPABASE_PUBLISHABLE_KEY));
-
-      if (url && key) {
-        const supabase = createClient(url, key);
-        const { data, error } = await supabase.from('ecosystem_subscriptions').select('*').order('created_at', { ascending: false });
-        if (!error && data && data.length > 0) {
-          loaded = data as EcosystemSubscription[];
-        }
+      const { data, error } = await (sharedSupabase as any)
+        .from('ecosystem_subscriptions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        loaded = data as EcosystemSubscription[];
       }
     } catch (err) {
       console.warn('[MasterAdmin] Could not fetch from Supabase:', err);
@@ -186,17 +179,7 @@ export const MasterAdminDashboard: React.FC = () => {
     }
 
     try {
-      const url =
-        (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
-        (typeof process !== 'undefined' && process.env?.SUPABASE_URL);
-      const key =
-        (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_SUPABASE_ANON_KEY || import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY)) ||
-        (typeof process !== 'undefined' && (process.env?.SUPABASE_ANON_KEY || process.env?.SUPABASE_PUBLISHABLE_KEY));
-
-      if (url && key) {
-        const supabase = createClient(url, key);
-        await supabase.from('ecosystem_subscriptions').upsert(updated);
-      }
+      await (sharedSupabase as any).from('ecosystem_subscriptions').upsert(updated);
     } catch (err) {
       console.warn('[MasterAdmin] Supabase sync failed:', err);
     }

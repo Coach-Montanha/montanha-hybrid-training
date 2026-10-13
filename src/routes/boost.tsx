@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { calculateOneRepMax } from '@/components/calculators/OneRepMaxDialog';
 
 export const Route = createFileRoute('/boost')({
   component: BoostPage,
@@ -70,8 +71,9 @@ function BoostPage() {
   const [distanciaMetros, setDistanciaMetros] = useState<number>(1500);
   const [tempoMinutos, setTempoMinutos] = useState<number>(5.5);
 
-  const oneRmEpley = Math.round(weight * (1 + reps / 30));
-  const oneRmBrzycki = Math.round(weight * (36 / (37 - reps)));
+  const { epley, brzycki } = calculateOneRepMax(weight, reps);
+  const oneRmEpley = Math.round(epley);
+  const oneRmBrzycki = Math.round(brzycki);
 
   const vamKmh = ((distanciaMetros / (tempoMinutos * 60)) * 3.6).toFixed(1);
   const vamPaceMinSec = () => {

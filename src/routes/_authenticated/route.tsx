@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { getImpersonatedSession } from "@/components/ImpersonationBanner";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -21,20 +22,15 @@ export const Route = createFileRoute("/_authenticated")({
         } catch {}
       }
 
-      const impersonate = localStorage.getItem("edufinance.impersonate");
-      if (impersonate) {
-        try {
-          const parsed = JSON.parse(impersonate);
-          if (parsed && parsed.targetEmail) {
-            return {
-              user: {
-                id: parsed.targetUserId || `support_${parsed.targetEmail}`,
-                email: parsed.targetEmail,
-                user_metadata: { name: parsed.targetEmail.split("@")[0] }
-              } as any
-            };
-          }
-        } catch {}
+      const imp = getImpersonatedSession();
+      if (imp?.targetEmail) {
+        return {
+          user: {
+            id: imp.targetUserId || `support_${imp.targetEmail}`,
+            email: imp.targetEmail,
+            user_metadata: { name: imp.targetEmail.split("@")[0] }
+          } as any
+        };
       }
     }
 

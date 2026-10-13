@@ -16,6 +16,7 @@ export interface LLMRequestOptions {
   temperature?: number;
   maxTokens?: number;
   preferredProvider?: "gemini" | "groq" | "cerebras" | "sambanova" | "openrouter";
+  excludeProviders?: string[];
 }
 
 export interface LLMResponse {
@@ -107,6 +108,9 @@ export async function generateEcosystemCompletion(
   }
 
   let providersToTry = [...ECOSYSTEM_PROVIDERS];
+  if (options.excludeProviders?.length) {
+    providersToTry = providersToTry.filter((p) => !options.excludeProviders!.includes(p.name));
+  }
   if (options.preferredProvider) {
     const prefIdx = providersToTry.findIndex((p) => p.name === options.preferredProvider);
     if (prefIdx > -1) {

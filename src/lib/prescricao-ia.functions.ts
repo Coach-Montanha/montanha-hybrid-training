@@ -429,6 +429,57 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
           : isCo
             ? CO_SYSTEM_PROMPT
             : SYSTEM_PROMPT;
+    let resolvedHibridoTemplate: SessaoTemplate | null = null;
+    let resolvedHibridoCandidatos: Awaited<ReturnType<typeof buscarCandidatosDoMolde>> | null = null;
+
+    if (isHibrido) {
+      let template: SessaoTemplate = data.hibrido.sessaoTemplate;
+      const methodologyForQuery = metodologiaEfetiva === "kettlebell_fitness" ? "kettlebell_fitness" : "hibrido";
+
+      if (!template || !Array.isArray(template) || template.length === 0) {
+        const { data: coach } = await supabase.from("coaches").select("id").maybeSingle();
+        if (coach) {
+          const { data: pref } = await supabase
+            .from("generator_preferences")
+            .select("blocos")
+            .eq("coach_id", coach.id)
+            .eq("metodologia", methodologyForQuery)
+            .maybeSingle();
+
+          if (pref?.blocos && Array.isArray(pref.blocos) && pref.blocos.length > 0) {
+            template = (pref.blocos as any[]).map((b, idx) => ({
+              chave: b.chave || `bloco_${idx + 1}`,
+              formato: b.formato,
+              titulo: b.titulo,
+              selecaoExercicios: b.selecaoExercicios || "ia",
+              numeroExercicios: b.num_exercicios || 3,
+              fonteExercicios: b.fonteExercicios || { metodologias: [metodologiaEfetiva] },
+            })) as SessaoTemplate;
+          }
+        }
+      }
+
+      if (!template || !Array.isArray(template) || template.length === 0) {
+        template = (continuation.lastSessionStructure ?? []).map((b: any) => ({
+          chave: b.chave,
+          formato: b.formato,
+          titulo: b.titulo,
+          selecaoExercicios: "ia",
+          numeroExercicios: b.numeroExercicios || 1,
+          fonteExercicios: b.fonteExercicios || { metodologias: [metodologiaEfetiva] },
+        })) as SessaoTemplate;
+      }
+
+      if (!template || template.length === 0) {
+        throw new Error(
+          "Não foi possível identificar o molde da sessão anterior para continuar a progressão. Configure o molde manualmente ou verifique se a rotina já possui treinos cadastrados.",
+        );
+      }
+
+      resolvedHibridoTemplate = template;
+      resolvedHibridoCandidatos = await buscarCandidatosDoMolde(supabase, template);
+    }
+
     const userPrompt =
       isCo && linhaCo
         ? montarCorridaPrompt({
@@ -451,7 +502,7 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             dataInicio: ctx.data_inicio,
             escopoLabel: ctx.escopo_label,
             instrucoes: instrucoesCompletas,
-            resumoAnterior: resumoAnterior, // Adicionado histórico
+            resumoAnterior: resumoAnterior,
           })
         : isTf && linhaTf
         ? montarFuncionalPrompt({
@@ -469,7 +520,7 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             dataInicio: ctx.data_inicio,
             escopoLabel: ctx.escopo_label,
             instrucoes: instrucoesCompletas,
-            resumoAnterior: resumoAnterior, // Adicionado histórico
+            resumoAnterior: resumoAnterior,
           })
         : isWl && wl && linhaWl
         ? montarWlPrompt({
@@ -480,7 +531,7 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             dataInicio: ctx.data_inicio,
             escopoLabel: ctx.escopo_label,
             instrucoes: instrucoesCompletas,
-            resumoAnterior: resumoAnterior, // Adicionado histórico
+            resumoAnterior: resumoAnterior,
           })
         : isKbSport && kb && linha
         ? montarKbSportPrompt({
@@ -491,70 +542,18 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             dataInicio: ctx.data_inicio,
             escopoLabel: ctx.escopo_label,
             instrucoes: instrucoesCompletas,
-            resumoAnterior: resumoAnterior, // Adicionado histórico
+            resumoAnterior: resumoAnterior,
           })
-        : isHibrido
-
-        ? await (async () => {
-            let template = data.hibrido.sessaoTemplate;
-            const methodologyForQuery = metodologiaEfetiva === "kettlebell_fitness" ? "kettlebell_fitness" : "hibrido";
-
-            // 1. Tentar carregar das preferências do treinador se o template vier vazio ou for "auto"
-            if (!template || !Array.isArray(template) || template.length === 0) {
-              console.log(`[prescribeTrainingWithAi] Híbrido sem sessaoTemplate. Buscando prefs para ${methodologyForQuery}...`);
-              const { data: coach } = await supabase.from("coaches").select("id").maybeSingle();
-              if (coach) {
-                const { data: pref } = await supabase
-                  .from("generator_preferences")
-                  .select("blocos")
-                  .eq("coach_id", coach.id)
-                  .eq("metodologia", methodologyForQuery)
-                  .maybeSingle();
-                
-                if (pref?.blocos && Array.isArray(pref.blocos) && pref.blocos.length > 0) {
-                  console.log("[prescribeTrainingWithAi] Usando blocos das configurações persistidas.");
-                  template = (pref.blocos as any[]).map((b, idx) => ({
-                    chave: b.chave || `bloco_${idx + 1}`,
-                    formato: b.formato,
-                    titulo: b.titulo,
-                    selecaoExercicios: b.selecaoExercicios || "ia",
-                    numeroExercicios: b.num_exercicios || 3,
-                    fonteExercicios: b.fonteExercicios || { metodologias: [metodologiaEfetiva] }
-                  }));
-                }
-              }
-            }
-
-            // 2. Fallback para a estrutura da última sessão se ainda estiver vazio
-            if (!template || !Array.isArray(template) || template.length === 0) {
-              console.log("[prescribeTrainingWithAi] Fallback: Usando histórico da última sessão...");
-              template = (continuation.lastSessionStructure ?? []).map((b: any) => ({
-                chave: b.chave,
-                formato: b.formato,
-                titulo: b.titulo,
-                selecaoExercicios: "ia",
-                numeroExercicios: b.numeroExercicios || 1,
-                fonteExercicios: b.fonteExercicios || { metodologias: [metodologiaEfetiva] }
-              }));
-            }
-
-
-            
-            if (!template || template.length === 0) {
-              console.error("[prescribeTrainingWithAi] Falha Crítica: Nenhum molde disponível.");
-              throw new Error("Não foi possível identificar o molde da sessão anterior para continuar a progressão. Configure o molde manualmente ou verifique se a rotina já possui treinos cadastrados.");
-            }
-
-            return montarHibridoPrompt({
-              payload: { ...data.hibrido, sessaoTemplate: template },
-              candidatos: await buscarCandidatosDoMolde(supabase, template),
-              instrucoes: instrucoesCompletas,
-              resumoAnterior: resumoAnterior,
-              continuation: continuation,
-              setTypeRegistry: data.setTypes || BUILTIN_SET_TYPES,
-              customFormats: data.formatRegistry || [],
-            });
-          })()
+        : isHibrido && resolvedHibridoTemplate && resolvedHibridoCandidatos
+        ? montarHibridoPrompt({
+            payload: { ...data.hibrido, sessaoTemplate: resolvedHibridoTemplate },
+            candidatos: resolvedHibridoCandidatos,
+            instrucoes: instrucoesCompletas,
+            resumoAnterior: resumoAnterior,
+            continuation: continuation,
+            setTypeRegistry: data.setTypes || BUILTIN_SET_TYPES,
+            customFormats: data.formatRegistry || [],
+          })
         : montarUserPrompt(
             {
               ...ctx,
@@ -565,9 +564,6 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
             data.prompt,
           );
 
-    // Adaptador único do gateway (nada de chamar server functions de dentro de
-    // um handler — isso deixava a função fora do manifesto e causava o erro
-    // "Server function info not found" no ambiente publicado).
     const { callLovableAiJson, AiGatewayError, resolveAiModel } = await import("@/lib/ai-gateway.server");
     const modelToUse = resolveAiModel();
 
@@ -600,30 +596,12 @@ export const prescribeTrainingWithAi = createServerFn({ method: "POST" })
       throw err;
     }
 
-
     try {
-      if (isHibrido) {
-        const templateFinal = data.hibrido.sessaoTemplate?.length > 0 
-          ? data.hibrido.sessaoTemplate 
-          : continuation.lastSessionStructure
-            ? continuation.lastSessionStructure.map((b: any) => ({
-                chave: b.chave,
-                formato: b.formato,
-                titulo: b.titulo,
-                selecaoExercicios: "ia",
-                numeroExercicios: b.numeroExercicios,
-                fonteExercicios: b.fonteExercicios
-              }))
-            : [];
-
-        if (!templateFinal || templateFinal.length === 0) {
-           throw new Error("AI_NO_TEMPLATE: O molde da sessão está vazio ou inválido.");
-        }
-
+      if (isHibrido && resolvedHibridoTemplate && resolvedHibridoCandidatos) {
         const result = normalizarPrescricaoHibrido(
           conteudo,
-          templateFinal,
-          await buscarCandidatosDoMolde(supabase, templateFinal)
+          resolvedHibridoTemplate,
+          resolvedHibridoCandidatos,
         );
         return { ...result, generation_source: "ai" } as any;
       }

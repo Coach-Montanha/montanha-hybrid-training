@@ -3,8 +3,14 @@ import { useRouterState } from '@tanstack/react-router';
 import { Shield, LogOut, UserCheck } from 'lucide-react';
 
 export const IMPERSONATE_STORAGE_KEY = 'montanha_impersonate';
+export const LEGACY_IMPERSONATE_KEY = 'edufinance.impersonate';
 
-export function getImpersonatedEmail(): string | null {
+export interface ImpersonatedSession {
+  targetUserId?: string;
+  targetEmail: string;
+}
+
+export function getImpersonatedSession(): ImpersonatedSession | null {
   if (typeof window === 'undefined') return null;
   try {
     const urlParams = new URLSearchParams(window.location.search);
@@ -12,23 +18,45 @@ export function getImpersonatedEmail(): string | null {
     if (fromUrl && fromUrl.trim()) {
       const clean = fromUrl.trim().toLowerCase();
       localStorage.setItem(IMPERSONATE_STORAGE_KEY, clean);
-      return clean;
+      return { targetEmail: clean };
     }
-    return localStorage.getItem(IMPERSONATE_STORAGE_KEY);
+
+    const raw =
+      localStorage.getItem(IMPERSONATE_STORAGE_KEY) ||
+      localStorage.getItem(LEGACY_IMPERSONATE_KEY);
+    if (!raw) return null;
+
+    if (raw.startsWith('{')) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.targetEmail) {
+        return {
+          targetUserId: parsed.targetUserId,
+          targetEmail: String(parsed.targetEmail).trim().toLowerCase(),
+        };
+      }
+    }
+
+    return { targetEmail: raw.trim().toLowerCase() };
   } catch {
     return null;
   }
+}
+
+export function getImpersonatedEmail(): string | null {
+  return getImpersonatedSession()?.targetEmail ?? null;
 }
 
 export function clearImpersonation() {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(IMPERSONATE_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_IMPERSONATE_KEY);
     const url = new URL(window.location.href);
     url.searchParams.delete('impersonate');
     window.location.href = url.pathname + (url.search ? url.search : '') + url.hash;
   } catch {
     localStorage.removeItem(IMPERSONATE_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_IMPERSONATE_KEY);
     window.location.reload();
   }
 }

@@ -158,7 +158,7 @@ export async function renderizarPreviewDataURL(
   return small.toDataURL("image/png");
 }
 
-async function canvasParaBlob(
+export async function canvasParaBlob(
   canvas: HTMLCanvasElement,
   formato: "png" | "jpg",
 ): Promise<Blob> {
@@ -167,7 +167,7 @@ async function canvasParaBlob(
   );
 }
 
-function baixarBlob(blob: Blob, nome: string) {
+export function baixarBlob(blob: Blob, nome: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

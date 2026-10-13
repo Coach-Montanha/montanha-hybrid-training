@@ -1,4 +1,6 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { supabase as sharedSupabase } from '@/integrations/supabase/client';
+import { getImpersonatedEmail } from '@/components/ImpersonationBanner';
 
 export interface EcosystemUser {
   id: string;
@@ -64,22 +66,11 @@ const DISPOSABLE_EMAIL_DOMAINS = new Set([
 
 function getSupabaseClient(): SupabaseClient | null {
   try {
-    const url =
-      (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
-      (typeof process !== 'undefined' && process.env?.SUPABASE_URL) ||
-      '';
-    const key =
-      (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_SUPABASE_ANON_KEY || import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY)) ||
-      (typeof process !== 'undefined' && (process.env?.SUPABASE_ANON_KEY || process.env?.SUPABASE_PUBLISHABLE_KEY)) ||
-      '';
-
-    if (url && key) {
-      return createClient(url, key);
-    }
+    return sharedSupabase as unknown as SupabaseClient;
   } catch (err) {
-    console.warn('[EcosystemAuth] Error initializing Supabase client:', err);
+    console.warn('[EcosystemAuth] Error accessing shared Supabase client:', err);
+    return null;
   }
-  return null;
 }
 
 /**
@@ -420,7 +411,7 @@ export async function checkProjectAccess(
     }
 
     // Support trial or impersonation session active locally
-    const trialUser = localStorage.getItem('sistema_hibrido_trial_user') || localStorage.getItem('edufinance.impersonate');
+    const trialUser = localStorage.getItem('sistema_hibrido_trial_user') || getImpersonatedEmail();
     if (trialUser) {
       return {
         hasAccess: true,
