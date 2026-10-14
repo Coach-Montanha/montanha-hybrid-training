@@ -63,7 +63,7 @@ Montanha Hybrid Training/
 │   ├── lib/                 # Utilitários (PWA, temas, tratamento de erros)
 │   ├── routes/              # Rotas do aplicativo
 │   │   ├── __root.tsx       # Configuração global de Head, SEO, JSON-LD
-│   │   ├── auth.tsx         # Tela de autenticação e login
+│   │   ├── auth.tsx         # Tela de autenticação unificada (PIN 10 dígitos / e-mail)
 │   │   ├── auth.primeiro-acesso.tsx # Fluxo de onboarding do primeiro acesso
 │   │   ├── boost.tsx        # Acelerador Booster do Ecossistema
 │   │   ├── create.tsx       # Módulo Creator com IA
@@ -74,14 +74,21 @@ Montanha Hybrid Training/
 │   │       ├── app.tsx      # Layout compartilhado da área logada
 │   │       ├── app.index.tsx # Visão geral de treinos e métricas
 │   │       ├── app.alunos.tsx # Gestão de alunos vinculados
+│   │       ├── app.arquivos.tsx # Gerenciador de arquivos e mídias
 │   │       ├── app.programas.tsx # Gestão de programas de treino
 │   │       ├── app.exercicios.tsx # Biblioteca de exercícios e categorias
+│   │       ├── app.exercicios.duplicados.tsx # Higienização e mesclagem de exercícios duplicados
 │   │       ├── app.gerar.tsx # Gerador dinâmico de sessões
+│   │       ├── app.marca.tsx # Personalização de marca e white-label
+│   │       ├── app.sessoes.$id.tsx # Detalhes da sessão
+│   │       ├── app.sessoes.nova.tsx # Criação de nova sessão
+│   │       ├── app.treinos.tsx # Lista e editor de treinos
 │   │       ├── app.configuracoes.tsx # Parâmetros do app e personalização
 │   │       ├── aluno.tsx    # Layout do perfil de aluno
 │   │       └── aluno.sessao.$id.tsx # Execução da sessão de treino em tempo real
 │   ├── styles.css           # Estilos e variáveis globais Tailwind
-├── DEV_GUIDE.md             # ESTE MANUAL TÉCNICO INTERNO
+│   └── database/            # Esquema SQL unificado no repositório canônico: montanha-master-admin/database/ecosystem_schema.sql
+├── DEV_GUIDE.md             # ESTE MANUAL TÉCNICO INTERNO (Atualizado)
 ├── package.json             # Dependências e scripts
 ├── tsconfig.json            # Configuração do TypeScript
 └── vite.config.ts           # Configurações do Vite e Nitro
