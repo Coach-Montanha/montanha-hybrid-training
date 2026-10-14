@@ -44,6 +44,7 @@ import {
   Sparkles,
   Pencil,
   Download,
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { METHODOLOGY_LABEL, type Methodology } from "@/lib/methodology";
@@ -754,6 +755,58 @@ function ProgramaCard({
       })
     : "—";
 
+  function copiarParaStudio() {
+    try {
+      const weeks = (programa.program_weeks || [])
+        .slice()
+        .sort((a: any, b: any) => (a.numero_semana || 0) - (b.numero_semana || 0))
+        .map((w: any) => ({
+          week_number: w.numero_semana,
+          sessions: (w.sessions || [])
+            .slice()
+            .sort((a: any, b: any) => (a.numero_dia || 0) - (b.numero_dia || 0))
+            .map((s: any) => ({
+              title: s.titulo,
+              day_number: s.numero_dia,
+              blocks: (s.session_blocks || [])
+                .slice()
+                .sort((a: any, b: any) => (a.ordem || 0) - (b.ordem || 0))
+                .map((b: any) => ({
+                  format: b.formato,
+                  title: b.titulo,
+                  exercises: (b.session_block_exercises || [])
+                    .slice()
+                    .sort((a: any, b: any) => (a.ordem || 0) - (b.ordem || 0))
+                    .map((e: any) => ({
+                      name: e.exercises?.nome_pt || e.nome_livre || "Exercício",
+                      sets: e.series,
+                      reps: e.reps,
+                      load_kg: e.carga_kg,
+                      rest_seconds: e.descanso_seg,
+                      observations: e.observacoes,
+                    })),
+                })),
+            })),
+        }));
+
+      const payload = {
+        id: programa.id,
+        title: programa.titulo,
+        methodology: programa.metodologia,
+        start_date: programa.data_inicio,
+        weeks,
+      };
+
+      navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+      toast.success("Treino copiado para a Área de Transferência!", {
+        description: "No Personal Studio, basta clicar em 'Colar Treino da Área de Transferência' para prescrever ao aluno.",
+        duration: 7000,
+      });
+    } catch (err: any) {
+      toast.error("Erro ao copiar treino: " + err.message);
+    }
+  }
+
   return (
     <Collapsible open={open} onOpenChange={setOpen} asChild>
       <Card className="overflow-hidden border-border/70 transition-colors duration-200 hover:border-primary/40">
@@ -994,6 +1047,19 @@ function ProgramaCard({
               >
                 <Sparkles className="h-4 w-4" />
                 Prescrever com IA / Subir Planilha
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full sm:w-auto min-h-[40px] gap-2 border-primary/40 text-primary hover:bg-primary/10 cursor-pointer font-semibold"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  copiarParaStudio();
+                }}
+              >
+                <Share2 className="h-4 w-4" />
+                Copiar p/ Personal Studio
               </Button>
               <Button
                 size="sm"
