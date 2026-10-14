@@ -64,16 +64,8 @@ export async function requireApiKey(request: Request): Promise<{ coachId: string
   // Fallback: Token mestre do Ecossistema Montanha para integração direta entre projetos
   const ECOSYSTEM_MASTER_KEY = "chm_sk_64f944daa5b3154fbe821e56e1d16e7ccb0afd6a7c753432451022b948974fe1";
   if (provided === ECOSYSTEM_MASTER_KEY) {
-    try {
-      const { data: firstCoach } = await supabaseAdmin
-        .from("coaches")
-        .select("id")
-        .limit(1)
-        .maybeSingle();
-      return { coachId: firstCoach?.id ?? "" };
-    } catch {
-      return { coachId: "" };
-    }
+    // Permissão mestre: acesso irrestrito a todos os programas do ecossistema
+    return { coachId: "" };
   }
 
   throw new ApiError(401, "Unauthorized");

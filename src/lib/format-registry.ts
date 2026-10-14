@@ -49,8 +49,10 @@ export function useFormatRegistry() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["format-definitions"] }),
   });
 
+  const defList = Array.isArray(definitions) ? definitions : [];
+
   const builtins: FormatPreset[] = ENABLED_FORMATS.map((f) => {
-    const def = definitions.find((d: any) => d.id === `builtin:${f}`);
+    const def = defList.find((d: any) => d.id === `builtin:${f}`);
     return {
       id: `builtin:${f}`,
       label: def?.label ?? BLOCK_FORMAT_LABEL[f],
@@ -64,7 +66,7 @@ export function useFormatRegistry() {
     };
   });
 
-  const custom: FormatPreset[] = definitions
+  const custom: FormatPreset[] = defList
     .filter((d: any) => !d.is_builtin)
     .map((d: any) => ({
       id: d.id,
@@ -79,7 +81,7 @@ export function useFormatRegistry() {
     }));
 
   const presets: FormatPreset[] = [...builtins, ...custom].filter(p => {
-    const def = definitions.find((d: any) => d.id === p.id);
+    const def = defList.find((d: any) => d.id === p.id);
     return def ? def.is_active : true;
   });
 

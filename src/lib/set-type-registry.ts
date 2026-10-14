@@ -124,7 +124,9 @@ export function useSetTypeRegistry() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["set-type-definitions"] }),
   });
 
-  const custom: SetTypePreset[] = definitions
+  const defList = Array.isArray(definitions) ? definitions : [];
+
+  const custom: SetTypePreset[] = defList
     .filter((d: any) => !d.is_builtin)
     .map((d: any) => ({
       id: d.id,
@@ -134,7 +136,7 @@ export function useSetTypeRegistry() {
     }));
 
   const presets: SetTypePreset[] = [...BUILTIN_SET_TYPES, ...custom].filter(p => {
-    const def = definitions.find((d: any) => d.id === p.id);
+    const def = defList.find((d: any) => d.id === p.id);
     return def ? def.is_active : true;
   });
 

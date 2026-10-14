@@ -341,6 +341,12 @@ export function GerarPanel({ showHeader = true }: { showHeader?: boolean } = {})
                 .select("id, titulo")
                 .single();
               if (error || !prog) throw error;
+              setIaEscopo({
+                label: "4 semanas (1 mês)",
+                semanas: 4,
+                diasPorSemana: 3,
+                dataInicio,
+              });
               setIaPrograma({ id: prog.id, titulo: prog.titulo ?? titulo, metodologia: "musculacao" } as any);
             } catch (e: any) {
               toast.error(e?.message || "Erro ao iniciar prescrição");
