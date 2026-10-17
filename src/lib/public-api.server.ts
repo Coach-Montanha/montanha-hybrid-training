@@ -61,11 +61,10 @@ export async function requireApiKey(request: Request): Promise<{ coachId: string
     return { coachId: envCoachId };
   }
 
-  // Fallback: Token mestre do Ecossistema Montanha para integração direta entre projetos
-  const ECOSYSTEM_MASTER_KEY = "chm_sk_64f944daa5b3154fbe821e56e1d16e7ccb0afd6a7c753432451022b948974fe1";
-  if (provided === ECOSYSTEM_MASTER_KEY) {
-    // Permissão mestre: acesso irrestrito a todos os programas do ecossistema
-    return { coachId: "" };
+  // Fallback: Token mestre configurado via variável de ambiente no servidor
+  const ecosystemMasterKey = process.env.ECOSYSTEM_MASTER_KEY;
+  if (ecosystemMasterKey && provided === ecosystemMasterKey) {
+    return { coachId: process.env.ECOSYSTEM_DEFAULT_COACH_ID || "" };
   }
 
   throw new ApiError(401, "Unauthorized");

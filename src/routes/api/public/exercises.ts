@@ -9,8 +9,9 @@ export const Route = createFileRoute("/api/public/exercises")({
         return preflight();
       },
       GET: async ({ request }) => {
-        const { json, errorResponse } = await import("@/lib/public-api.server");
+        const { requireApiKey, json, errorResponse } = await import("@/lib/public-api.server");
         try {
+          await requireApiKey(request);
           const rawLimit = new URL(request.url).searchParams.get("limit");
           const limit = rawLimit ? Math.min(Math.max(Number(rawLimit) || 50, 1), 500) : 250;
 
